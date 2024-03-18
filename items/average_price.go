@@ -3,6 +3,7 @@ package items
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -13,6 +14,9 @@ func (c *Client) FiveMinute() (Averages, error) {
 	res, err := c.httpClient.Get("https://" + c.baseURL + "/5m")
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 	defer res.Body.Close()
 	var a averageResponse
@@ -30,6 +34,9 @@ func (c *Client) FiveMinuteStartingAt(t time.Time) (Averages, error) {
 	if err != nil {
 		return nil, err
 	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
 	defer res.Body.Close()
 	var a averageResponse
 	err = json.NewDecoder(res.Body).Decode(&a)
@@ -46,6 +53,9 @@ func (c *Client) OneHour() (Averages, error) {
 	if err != nil {
 		return nil, err
 	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
 	defer res.Body.Close()
 	var a averageResponse
 	err = json.NewDecoder(res.Body).Decode(&a)
@@ -61,6 +71,9 @@ func (c *Client) OneHourStartingAt(t time.Time) (Averages, error) {
 	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/1h?timestamp=%d", c.baseURL, t.Unix()))
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 	defer res.Body.Close()
 	var a averageResponse

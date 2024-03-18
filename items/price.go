@@ -3,6 +3,7 @@ package items
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -13,6 +14,9 @@ func (c *Client) Latest() (Prices, error) {
 	res, err := c.httpClient.Get("https://" + c.baseURL + "/latest")
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 	defer res.Body.Close()
 	var p priceResponse
@@ -29,6 +33,9 @@ func (c *Client) LatestFor(id int) (Spread, error) {
 	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/latest?id=%d", c.baseURL, id))
 	if err != nil {
 		return Spread{}, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return Spread{}, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 	defer res.Body.Close()
 	var p priceResponse

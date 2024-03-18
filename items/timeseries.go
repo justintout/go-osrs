@@ -3,6 +3,7 @@ package items
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -12,6 +13,9 @@ func (c *Client) Timeseries(id int, timestep Timestep) (Timeseries, error) {
 	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/timeseries?timestep=%s&id=%d", c.baseURL, timestep, id))
 	if err != nil {
 		return Timeseries{}, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return Timeseries{}, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 	defer res.Body.Close()
 	var t Timeseries
