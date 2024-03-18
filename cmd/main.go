@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	c := items.NewClient("go-osrs Test Command (https://github.com/justintout/go-osrs/cmd)")
+	c := items.NewClient("go-osrs/0.0.1 (https://github.com/justintout/go-osrs/cmd)")
 	// prices, err := c.Latest()
 	// if err != nil {
 	// 	panic(err)
@@ -36,5 +36,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Ale of the gods: %d @ %s\n", spread.High, spread.HighTime.Format(time.RFC3339))
+	fmt.Printf("Ale of the gods: %d @ %s\n", spread.Low, spread.LowTime.Format(time.RFC3339))
 }

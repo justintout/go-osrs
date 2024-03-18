@@ -1,24 +1,10 @@
 package items
 
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-)
-
 // Mapping returns a slice of all items
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Mapping
 func (c *Client) Mapping() ([]Item, error) {
-	res, err := c.httpClient.Get("https://" + c.baseURL + "/mapping")
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var items []Item
-	err = json.NewDecoder(res.Body).Decode(&items)
+	err := c.get("https://"+c.baseURL+"/mapping", &items)
 	return items, err
 }
 

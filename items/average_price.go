@@ -3,7 +3,6 @@ package items
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -11,16 +10,8 @@ import (
 // FiveMinute returns 5-minute average high/low prices and volume for all items
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#5-minute_prices
 func (c *Client) FiveMinute() (Averages, error) {
-	res, err := c.httpClient.Get("https://" + c.baseURL + "/5m")
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var a averageResponse
-	err = json.NewDecoder(res.Body).Decode(&a)
+	err := c.get("https://"+c.baseURL+"/5m", &a)
 	if err != nil {
 		return nil, err
 	}
@@ -30,16 +21,8 @@ func (c *Client) FiveMinute() (Averages, error) {
 // FiveMinuteStartingAt returns 5-minute average high/low prices and volumes for all items, starting at the given time
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters_2
 func (c *Client) FiveMinuteStartingAt(t time.Time) (Averages, error) {
-	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/5m?timestamp=%d", c.baseURL, t.Unix()))
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var a averageResponse
-	err = json.NewDecoder(res.Body).Decode(&a)
+	err := c.get(fmt.Sprintf("https://%s/5m?timestamp=%d", c.baseURL, t.Unix()), &a)
 	if err != nil {
 		return nil, err
 	}
@@ -49,16 +32,8 @@ func (c *Client) FiveMinuteStartingAt(t time.Time) (Averages, error) {
 // OneHour returns hourly average high/low prices and volumes for all items
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#1-hour_prices
 func (c *Client) OneHour() (Averages, error) {
-	res, err := c.httpClient.Get("https://" + c.baseURL + "/1h")
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var a averageResponse
-	err = json.NewDecoder(res.Body).Decode(&a)
+	err := c.get("https://"+c.baseURL+"/1h", &a)
 	if err != nil {
 		return nil, err
 	}
@@ -68,16 +43,8 @@ func (c *Client) OneHour() (Averages, error) {
 // OneHour returns hourly average high/low prices and volumes for all items, starting at the given time
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters_3
 func (c *Client) OneHourStartingAt(t time.Time) (Averages, error) {
-	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/1h?timestamp=%d", c.baseURL, t.Unix()))
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var a averageResponse
-	err = json.NewDecoder(res.Body).Decode(&a)
+	err := c.get(fmt.Sprintf("https://%s/1h?timestamp=%d", c.baseURL, t.Unix()), &a)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,6 @@ package items
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -11,35 +10,16 @@ import (
 // Latest returns the latest price spreads for all items
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Latest_price_(all_items)
 func (c *Client) Latest() (Prices, error) {
-	res, err := c.httpClient.Get("https://" + c.baseURL + "/latest")
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var p priceResponse
-	err = json.NewDecoder(res.Body).Decode(&p)
-	if err != nil {
-		return nil, err
-	}
-	return p.Data, nil
+	err := c.get("https://"+c.baseURL+"/latest", &p)
+	return p.Data, err
 }
 
 // LatestFor returns the latest price spread for the given item ID
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters
 func (c *Client) LatestFor(id int) (Spread, error) {
-	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/latest?id=%d", c.baseURL, id))
-	if err != nil {
-		return Spread{}, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return Spread{}, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
 	var p priceResponse
-	err = json.NewDecoder(res.Body).Decode(&p)
+	err := c.get(fmt.Sprintf("https://%s/latest?id=%d", c.baseURL, id), &p)
 	if err != nil {
 		return Spread{}, err
 	}

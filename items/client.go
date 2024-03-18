@@ -1,6 +1,8 @@
 package items
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -31,6 +33,23 @@ func NewClient(userAgent string, options ...ClientOption) *Client {
 		option(client)
 	}
 	return client
+}
+
+func (c *Client) get(url string, v any) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Add("User-Agent", c.userAgent)
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %v", res.StatusCode)
+	}
+	defer res.Body.Close()
+	return json.NewDecoder(res.Body).Decode(&v)
 }
 
 type ClientOption func(*Client)
