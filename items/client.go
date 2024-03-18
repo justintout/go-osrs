@@ -1,7 +1,6 @@
 package items
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -11,19 +10,22 @@ const (
 	freshStartURL    = "prices.runescape.wiki/api/v1/fsw"
 )
 
-const defaultUserAgent = "go-osrs v0.0.1 https://github.com/justintout/go-osrs"
-
+// Client is used to query the OSRS Wiki Real-time Prices API
+// https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices
 type Client struct {
 	httpClient *http.Client
-	baseUrl    string
+	baseURL    string
 	userAgent  string
 }
 
-func NewClient(options ...ClientOption) *Client {
+// NewClient creates a new Client
+// A descriptive user agent must be specified as requested by the Wiki team
+// See https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Please_set_a_descriptive_User-Agent!
+func NewClient(userAgent string, options ...ClientOption) *Client {
 	client := &Client{
 		httpClient: http.DefaultClient,
-		baseUrl:    defaultBaseURL,
-		userAgent:  defaultUserAgent,
+		baseURL:    defaultBaseURL,
+		userAgent:  userAgent,
 	}
 	for _, option := range options {
 		option(client)
@@ -31,43 +33,25 @@ func NewClient(options ...ClientOption) *Client {
 	return client
 }
 
-// Latest returns the latest price for all items
-func (c *Client) Latest() (Prices, error) {
-	res, err := c.httpClient.Get("https://" + c.baseUrl + "/latest")
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	var pr priceResponse
-	err = json.NewDecoder(res.Body).Decode(&pr)
-	if err != nil {
-		return nil, err
-	}
-	return pr.Data, nil
-}
-
 type ClientOption func(*Client)
 
+// WithHTTPClient is a functional option to pass an HTTP client different from http.DefaultClient
 func WithHTTPClient(httpClient *http.Client) ClientOption {
 	return func(c *Client) {
 		c.httpClient = httpClient
 	}
 }
 
-func WithUserAgent(userAgent string) ClientOption {
-	return func(c *Client) {
-		c.userAgent = userAgent
-	}
-}
-
+// ForDeadmanReborn is a functional option to use the Deadman Reborn URL instead of the base game url
 func ForDeadmanReborn() ClientOption {
 	return func(c *Client) {
-		c.baseUrl = deadmanRebornURL
+		c.baseURL = deadmanRebornURL
 	}
 }
 
+// ForFreshStart is a functional option to use the Fresh Start World URL instead of the base game url
 func ForFreshStart() ClientOption {
 	return func(c *Client) {
-		c.baseUrl = freshStartURL
+		c.baseURL = freshStartURL
 	}
 }
