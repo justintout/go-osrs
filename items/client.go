@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	defaultBaseURL   = "prices.runescape.wiki/api/v1/osrs"
-	deadmanRebornURL = "prices.runescape.wiki/api/v1/dmm"
-	freshStartURL    = "prices.runescape.wiki/api/v1/fsw"
+	defaultBaseURL   = "https://prices.runescape.wiki/api/v1/osrs"
+	deadmanRebornURL = "https://prices.runescape.wiki/api/v1/dmm"
+	freshStartURL    = "https://prices.runescape.wiki/api/v1/fsw"
 )
 
 // Client is used to query the OSRS Wiki Real-time Prices API
@@ -72,5 +72,11 @@ func ForDeadmanReborn() ClientOption {
 func ForFreshStart() ClientOption {
 	return func(c *Client) {
 		c.baseURL = freshStartURL
+	}
+}
+
+func ForCustomEndpoint(url string) ClientOption {
+	return func(c *Client) {
+		c.baseURL = url
 	}
 }

@@ -4,7 +4,7 @@ package items
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Mapping
 func (c *Client) Mapping() ([]Item, error) {
 	var items []Item
-	err := c.get("https://"+c.baseURL+"/mapping", &items)
+	err := c.get(c.baseURL+"/mapping", &items)
 	return items, err
 }
 

@@ -11,7 +11,7 @@ import (
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Latest_price_(all_items)
 func (c *Client) Latest() (Prices, error) {
 	var p priceResponse
-	err := c.get("https://"+c.baseURL+"/latest", &p)
+	err := c.get(c.baseURL+"/latest", &p)
 	return p.Data, err
 }
 
@@ -19,7 +19,7 @@ func (c *Client) Latest() (Prices, error) {
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters
 func (c *Client) LatestFor(id int) (Spread, error) {
 	var p priceResponse
-	err := c.get(fmt.Sprintf("https://%s/latest?id=%d", c.baseURL, id), &p)
+	err := c.get(fmt.Sprintf("%s/latest?id=%d", c.baseURL, id), &p)
 	if err != nil {
 		return Spread{}, err
 	}

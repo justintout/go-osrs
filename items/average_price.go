@@ -11,7 +11,7 @@ import (
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#5-minute_prices
 func (c *Client) FiveMinute() (Averages, error) {
 	var a averageResponse
-	err := c.get("https://"+c.baseURL+"/5m", &a)
+	err := c.get(c.baseURL+"/5m", &a)
 	if err != nil {
 		return nil, err
 	}
@@ -21,8 +21,10 @@ func (c *Client) FiveMinute() (Averages, error) {
 // FiveMinuteStartingAt returns 5-minute average high/low prices and volumes for all items, starting at the given time
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters_2
 func (c *Client) FiveMinuteStartingAt(t time.Time) (Averages, error) {
+	// TODO: timestamp must be divisible by 3600
+	//       either find closest past stamp divisible by 3600 or error
 	var a averageResponse
-	err := c.get(fmt.Sprintf("https://%s/5m?timestamp=%d", c.baseURL, t.Unix()), &a)
+	err := c.get(fmt.Sprintf("%s/5m?timestamp=%d", c.baseURL, t.Unix()), &a)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +35,7 @@ func (c *Client) FiveMinuteStartingAt(t time.Time) (Averages, error) {
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#1-hour_prices
 func (c *Client) OneHour() (Averages, error) {
 	var a averageResponse
-	err := c.get("https://"+c.baseURL+"/1h", &a)
+	err := c.get(c.baseURL+"/1h", &a)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +45,10 @@ func (c *Client) OneHour() (Averages, error) {
 // OneHour returns hourly average high/low prices and volumes for all items, starting at the given time
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters_3
 func (c *Client) OneHourStartingAt(t time.Time) (Averages, error) {
+	// TODO: timestamp must be divisible by 3600
+	//       either find closest past stamp divisible by 3600 or error
 	var a averageResponse
-	err := c.get(fmt.Sprintf("https://%s/1h?timestamp=%d", c.baseURL, t.Unix()), &a)
+	err := c.get(fmt.Sprintf("%s/1h?timestamp=%d", c.baseURL, t.Unix()), &a)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +81,7 @@ type Average struct {
 	AvgHighPrice    int `json:"avgHighPrice"`
 	HighPriceVolume int `json:"highPriceVolume"`
 	AvgLowPrice     int `json:"avgLowPrice"`
-	LowPriceVolume  int `json:"avgLowPrice"`
+	LowPriceVolume  int `json:"lowPriceVolume"`
 }
 
 type averageResponse struct {
