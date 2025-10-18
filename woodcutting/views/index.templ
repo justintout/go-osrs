@@ -1,10 +1,24 @@
 package views
 
 import "github.com/justintout/osrs/woodcutting"
+import "github.com/justintout/osrs/hiscores"
+import "fmt"
 
-templ Index(trees []woodcutting.Tree, actions []woodcutting.Action) {
+templ Index(trees []woodcutting.Tree, actions []woodcutting.Action, player *hiscores.Player) {
 	@layout("Woodcutting Calculator") {
 		<h1>Woodcutting Calculator</h1>
+
+		<form hx-get="/lookup" hx-target="#lookup-results" hx-swap="innerHTML">
+			<label for="username">Username:</label>
+			<input type="text" id="username" name="username"/>
+			<button type="submit">Lookup</button>
+		</form>
+		<div id="lookup-results">
+			if player != nil {
+				@PlayerInfo(player)
+			}
+		</div>
+
 		<form hx-get="/calculate" hx-target="#results" hx-swap="innerHTML">
 			<label for="startLevel">Start Level:</label>
 			<input type="number" id="startLevel" name="startLevel" value="1"/>
@@ -26,5 +40,15 @@ templ Index(trees []woodcutting.Tree, actions []woodcutting.Action) {
 				@Results(actions)
 			}
 		</div>
+	}
+}
+
+templ PlayerInfo(player *hiscores.Player) {
+	if woodcuttingSkill, ok := player.Skills["Woodcutting"]; ok {
+		<p>
+			Current Woodcutting Level: { fmt.Sprintf("%d", woodcuttingSkill.Level) }
+			<br/>
+			Current Woodcutting XP: { fmt.Sprintf("%d", woodcuttingSkill.XP) }
+		</p>
 	}
 }
