@@ -1,4 +1,3 @@
-cmd/saplings/templates/index_templ.go:8:8: no required module provides package github.com/a-h/templ; to add it:
-	go get github.com/a-h/templ
-cmd/saplings/templates/index_templ.go:9:8: no required module provides package github.com/a-h/templ/runtime; to add it:
-	go get github.com/a-h/templ/runtime
+# command-line-arguments
+cmd/saplings/main.go:49:13: undefined: templates.Index
+cmd/saplings/main.go:83:13: undefined: templates.Profits
