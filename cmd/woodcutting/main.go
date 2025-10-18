@@ -21,8 +21,17 @@ func main() {
 		startXp := woodcutting.XPForLevel(startLevel)
 		targetXp := woodcutting.XPForLevel(targetLevel)
 		disabledTrees := r.URL.Query()["disabledTrees"]
+		overrideLevels := make(map[string]int)
+		for _, tree := range woodcutting.Trees {
+			overrideStr := r.URL.Query().Get("override_" + tree.Name)
+			if overrideStr != "" {
+				if override, err := strconv.Atoi(overrideStr); err == nil {
+					overrideLevels[tree.Name] = override
+				}
+			}
+		}
 
-		actions := woodcutting.Calculate(startXp, targetXp, disabledTrees)
+		actions := woodcutting.Calculate(startXp, targetXp, disabledTrees, overrideLevels)
 
 		views.Results(actions).Render(r.Context(), w)
 	})

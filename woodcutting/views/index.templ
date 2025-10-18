@@ -25,13 +25,25 @@ templ Index(trees []woodcutting.Tree, actions []woodcutting.Action, player *hisc
 			<label for="targetLevel">Target Level:</label>
 			<input type="number" id="targetLevel" name="targetLevel" value="99"/>
 
-			<h2>Disabled Trees</h2>
-			for _, tree := range trees {
-				<div>
-					<input type="checkbox" id={ tree.Name } name="disabledTrees" value={ tree.Name }/>
-					<label for={ tree.Name }>{ tree.Name }</label>
-				</div>
-			}
+			<h2>Tree Settings</h2>
+			<table>
+				<thead>
+					<tr>
+						<th>Tree</th>
+						<th>Disable</th>
+						<th>Override Start Level</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, tree := range trees {
+						<tr>
+							<td>{ tree.Name }</td>
+							<td><input type="checkbox" id={ tree.Name } name="disabledTrees" value={ tree.Name }/></td>
+							<td><input type="number" name={ "override_" + tree.Name } placeholder={ fmt.Sprintf("%d", tree.Level) } /></td>
+						</tr>
+					}
+				</tbody>
+			</table>
 
 			<button type="submit">Calculate</button>
 		</form>

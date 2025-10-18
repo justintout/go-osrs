@@ -9,7 +9,7 @@ type Action struct {
 	Count  int
 }
 
-func Calculate(startXp, targetXp int, disabledTrees []string) []Action {
+func Calculate(startXp, targetXp int, disabledTrees []string, overrideLevels map[string]int) []Action {
 	var actions []Action
 	currentXp := startXp
 
@@ -22,13 +22,21 @@ func Calculate(startXp, targetXp int, disabledTrees []string) []Action {
 		return false
 	}
 
+	getTreeLevel := func(tree Tree) int {
+		if override, ok := overrideLevels[tree.Name]; ok {
+			return override
+		}
+		return tree.Level
+	}
+
 	for currentXp < targetXp {
 		currentLevel := LevelForXP(currentXp)
 		bestTree := Tree{}
 		bestXpRate := 0.0
 
 		for _, tree := range Trees {
-			if currentLevel >= tree.Level && !isTreeDisabled(tree.Name) {
+			treeLevel := getTreeLevel(tree)
+			if currentLevel >= treeLevel && !isTreeDisabled(tree.Name) {
 				if tree.XP > bestXpRate {
 					bestTree = tree
 					bestXpRate = tree.XP
@@ -44,9 +52,10 @@ func Calculate(startXp, targetXp int, disabledTrees []string) []Action {
 		// Find the level of the next available tree
 		nextTreeLevel := 100 // a level greater than max level 99
 		for _, tree := range Trees {
-			if tree.Level > currentLevel && !isTreeDisabled(tree.Name) {
-				if tree.Level < nextTreeLevel {
-					nextTreeLevel = tree.Level
+			treeLevel := getTreeLevel(tree)
+			if treeLevel > currentLevel && !isTreeDisabled(tree.Name) {
+				if treeLevel < nextTreeLevel {
+					nextTreeLevel = treeLevel
 				}
 			}
 		}
