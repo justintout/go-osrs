@@ -1,0 +1,3 @@
+# command-line-arguments
+cmd/saplings/main.go:49:13: undefined: templates.Index
+cmd/saplings/main.go:83:13: undefined: templates.Profits
