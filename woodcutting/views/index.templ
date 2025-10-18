@@ -1,0 +1,30 @@
+package views
+
+import "github.com/justintout/osrs/woodcutting"
+
+templ Index(trees []woodcutting.Tree, actions []woodcutting.Action) {
+	@layout("Woodcutting Calculator") {
+		<h1>Woodcutting Calculator</h1>
+		<form hx-get="/calculate" hx-target="#results" hx-swap="innerHTML">
+			<label for="startLevel">Start Level:</label>
+			<input type="number" id="startLevel" name="startLevel" value="1"/>
+			<label for="targetLevel">Target Level:</label>
+			<input type="number" id="targetLevel" name="targetLevel" value="99"/>
+
+			<h2>Disabled Trees</h2>
+			for _, tree := range trees {
+				<div>
+					<input type="checkbox" id={ tree.Name } name="disabledTrees" value={ tree.Name }/>
+					<label for={ tree.Name }>{ tree.Name }</label>
+				</div>
+			}
+
+			<button type="submit">Calculate</button>
+		</form>
+		<div id="results">
+			if actions != nil {
+				@Results(actions)
+			}
+		</div>
+	}
+}

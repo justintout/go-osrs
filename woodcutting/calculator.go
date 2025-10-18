@@ -1,0 +1,71 @@
+package woodcutting
+
+import (
+	"math"
+)
+
+type Action struct {
+	Tree   Tree
+	Count  int
+}
+
+func Calculate(startXp, targetXp int, disabledTrees []string) []Action {
+	var actions []Action
+	currentXp := startXp
+
+	isTreeDisabled := func(treeName string) bool {
+		for _, disabledTree := range disabledTrees {
+			if treeName == disabledTree {
+				return true
+			}
+		}
+		return false
+	}
+
+	for currentXp < targetXp {
+		currentLevel := LevelForXP(currentXp)
+		bestTree := Tree{}
+		bestXpRate := 0.0
+
+		for _, tree := range Trees {
+			if currentLevel >= tree.Level && !isTreeDisabled(tree.Name) {
+				if tree.XP > bestXpRate {
+					bestTree = tree
+					bestXpRate = tree.XP
+				}
+			}
+		}
+
+		if bestXpRate == 0 {
+			// No more available trees to chop
+			break
+		}
+
+		// Find the level of the next available tree
+		nextTreeLevel := 100 // a level greater than max level 99
+		for _, tree := range Trees {
+			if tree.Level > currentLevel && !isTreeDisabled(tree.Name) {
+				if tree.Level < nextTreeLevel {
+					nextTreeLevel = tree.Level
+				}
+			}
+		}
+
+		xpForNextTreeLevel := XPForLevel(nextTreeLevel)
+		xpToNextBreakpoint := int(math.Min(float64(targetXp), float64(xpForNextTreeLevel)))
+		xpNeeded := xpToNextBreakpoint - currentXp
+
+		if xpNeeded <= 0 {
+			// We have reached the next breakpoint, re-evaluate the best tree
+			currentXp = xpToNextBreakpoint
+			continue
+		}
+
+		logsNeeded := int(math.Ceil(float64(xpNeeded) / bestTree.XP))
+
+		actions = append(actions, Action{Tree: bestTree, Count: logsNeeded})
+		currentXp += int(float64(logsNeeded) * bestTree.XP)
+	}
+
+	return actions
+}
