@@ -1,0 +1,2 @@
+cmd/saplings/main.go:9:2: no required module provides package github.comcom/justintout/osrs/items; to add it:
+	go get github.comcom/justintout/osrs/items
