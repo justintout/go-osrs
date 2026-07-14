@@ -49,19 +49,26 @@ func Calculate(startXp, targetXp int, disabledTrees []string, overrideLevels map
 			break
 		}
 
-		// Find the level of the next available tree
-		nextTreeLevel := 100 // a level greater than max level 99
+		// Find the level of the next available tree that unlocks a better
+		// XP rate. If none exists, the only remaining breakpoint is the
+		// target itself, so chop the best current tree straight to targetXp.
+		nextTreeLevel := 0
 		for _, tree := range Trees {
 			treeLevel := getTreeLevel(tree)
 			if treeLevel > currentLevel && !isTreeDisabled(tree.Name) {
-				if treeLevel < nextTreeLevel {
+				if nextTreeLevel == 0 || treeLevel < nextTreeLevel {
 					nextTreeLevel = treeLevel
 				}
 			}
 		}
 
-		xpForNextTreeLevel := XPForLevel(nextTreeLevel)
-		xpToNextBreakpoint := int(math.Min(float64(targetXp), float64(xpForNextTreeLevel)))
+		xpToNextBreakpoint := targetXp
+		if nextTreeLevel != 0 {
+			xpForNextTreeLevel := XPForLevel(nextTreeLevel)
+			if xpForNextTreeLevel < xpToNextBreakpoint {
+				xpToNextBreakpoint = xpForNextTreeLevel
+			}
+		}
 		xpNeeded := xpToNextBreakpoint - currentXp
 
 		if xpNeeded <= 0 {

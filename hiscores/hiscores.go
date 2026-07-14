@@ -10,6 +10,11 @@ import (
 
 const HiscoresURL = "https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=%s"
 
+// hiscoresURL is the format string actually used to build requests. It
+// defaults to the live OSRS endpoint but can be overridden in tests to point
+// at a local httptest server.
+var hiscoresURL = HiscoresURL
+
 type Player struct {
 	Skills map[string]Skill
 }
@@ -28,11 +33,15 @@ var skillNames = []string{
 }
 
 func GetPlayer(username string) (*Player, error) {
-	resp, err := http.Get(fmt.Sprintf(HiscoresURL, username))
+	resp, err := http.Get(fmt.Sprintf(hiscoresURL, username))
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("hiscores lookup for %q failed: unexpected status code %d", username, resp.StatusCode)
+	}
 
 	player := &Player{Skills: make(map[string]Skill)}
 	scanner := bufio.NewScanner(resp.Body)
