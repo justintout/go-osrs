@@ -1,0 +1,21 @@
+package templates
+
+type ProfitResult struct {
+	Name   string
+	Profit string
+}
+
+templ Profits(results []ProfitResult) {
+	<table>
+		<tr>
+			<th>Tree</th>
+			<th>Profit</th>
+		</tr>
+		for _, r := range results {
+			<tr>
+				<td>{ r.Name }</td>
+				<td>{ r.Profit }</td>
+			</tr>
+		}
+	</table>
+}
