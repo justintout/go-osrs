@@ -2,9 +2,7 @@ package prices
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -50,24 +48,6 @@ func (c *Client) averages(ctx context.Context, path string) (Averages, error) {
 
 // Averages is a map of average prices, keyed with item IDs
 type Averages map[int]Average
-
-// UnmarshalJSON implements the JSONUnmarshaler interface
-// We use custom unmarshaling to make our item IDs integers instead of the strings returned by the API
-func (a *Averages) UnmarshalJSON(data []byte) error {
-	var items map[string]Average
-	if err := json.Unmarshal(data, &items); err != nil {
-		return err
-	}
-	*a = make(Averages)
-	for k, v := range items {
-		id, err := strconv.Atoi(k)
-		if err != nil {
-			return err
-		}
-		(*a)[id] = v
-	}
-	return nil
-}
 
 // Average is a struct of average high/low prices and volumes for some time period
 type Average struct {

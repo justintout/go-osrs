@@ -33,12 +33,6 @@ var treePairs = map[string]string{
 	"Celastrus seed":        "Celastrus sapling",
 }
 
-// geTax is the Grand Exchange sale tax: 2%, rounded down, capped at 5m.
-// Rounding down exempts items under 50gp.
-func geTax(price int) int {
-	return min(price*2/100, 5_000_000)
-}
-
 func comma(n int) string {
 	s := strconv.Itoa(n)
 	var b strings.Builder
@@ -52,7 +46,7 @@ func comma(n int) string {
 }
 
 func main() {
-	c := prices.NewClient("go-osrs/0.0.1 (https://github.com/justintout/go-osrs/cmd/saplings)")
+	c := prices.NewClient("go-osrs saplings example (https://github.com/justintout/go-osrs)")
 
 	mapping, err := c.Mapping(context.Background())
 	if err != nil {
@@ -71,7 +65,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		prices, err := c.Latest(r.Context())
+		latest, err := c.Latest(r.Context())
 		if err != nil {
 			http.Error(w, fmt.Sprintf("fetch prices: %s", err), http.StatusBadGateway)
 			return
@@ -80,10 +74,10 @@ func main() {
 		var results []templates.ProfitResult
 		for seedName, saplingName := range treePairs {
 			seed, sapling := itemMap[seedName], itemMap[saplingName]
-			seedPrice, saplingPrice := prices[seed.ID].Low, prices[sapling.ID].High
+			seedPrice, saplingPrice := latest[seed.ID].Low, latest[sapling.ID].High
 			results = append(results, templates.ProfitResult{
 				Name:             strings.TrimSuffix(seedName, " seed"),
-				Profit:           saplingPrice - geTax(saplingPrice) - seedPrice,
+				Profit:           prices.AfterTax(sapling.ID, saplingPrice) - seedPrice,
 				SeedBuyPrice:     seedPrice,
 				SaplingSellPrice: saplingPrice,
 				SeedImage:        iconBaseURL + strings.ReplaceAll(seed.Icon, " ", "_"),

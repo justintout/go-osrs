@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -29,24 +28,6 @@ func (c *Client) LatestFor(ctx context.Context, id int) (Spread, error) {
 
 // Prices is a map of item price spreads, keyed to item IDs
 type Prices map[int]Spread
-
-// UnmarshalJSON implements the JSONUnmarshaler interface
-// We use custom unmarshaling to make our item IDs integers instead of the strings returned by the API
-func (p *Prices) UnmarshalJSON(data []byte) error {
-	var items map[string]Spread
-	if err := json.Unmarshal(data, &items); err != nil {
-		return err
-	}
-	*p = make(Prices)
-	for k, v := range items {
-		id, err := strconv.Atoi(k)
-		if err != nil {
-			return err
-		}
-		(*p)[id] = v
-	}
-	return nil
-}
 
 // Spread is the latest instant-buy (High) and instant-sell (Low) price
 // for an item. A price is 0 when the item has no trade on that side.
