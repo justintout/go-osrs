@@ -1,8 +1,8 @@
 {
   "name": "osrs",
   "displayName": "OSRS",
-  "version": "0.5.0",
-  "description": "Old School RuneScape tools for agents: hiscores, live GE prices, wiki data, Wise Old Man, drop odds, boss value, shop arbitrage, market movers, daily, weekly, and seasonal price cycles, backtesting, price-action investigation, crafting trees, quest requirements, and training plans. Requires the osrs CLI.",
+  "version": "0.6.0",
+  "description": "Old School RuneScape tools for agents: hiscores, live GE prices, wiki data, Wise Old Man, drop odds, boss value, shop arbitrage, market movers, daily, weekly, and seasonal price cycles, backtesting, investment tracking, price-action investigation, crafting trees, quest requirements, and training plans. Requires the osrs CLI.",
   "author": {
     "name": "Justin Tout",
     "url": "https://github.com/justintout"

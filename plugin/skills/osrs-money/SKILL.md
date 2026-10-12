@@ -21,6 +21,7 @@ Use the `osrs` MCP tools when they are loaded. Otherwise run the CLI with `--jso
 | Items with reliable hour-of-day or day-of-week cycles | `cycles` / `osrs cycles ["<item>"] [--period weekly] --json` |
 | Whether trading a daily cycle actually pays | `backtest` / `osrs backtest ["<item>"] --json` |
 | Month-of-year pattern across years | `seasonal` / `osrs seasonal "<item>" --json` |
+| The user's saved investments and their alerts | `portfolio_check` / `osrs portfolio check --json` |
 | What a game update did to prices | `update_impact` / `osrs update-impact "<update title>" --json` |
 
 Item names must match exactly, ignoring case. When `price` fails, its error lists close names; pick the one the user meant or ask.
@@ -39,4 +40,5 @@ Item names must match exactly, ignoring case. When `price` fails, its error list
 - `seasonal` tests each year against months picked from the other years. Only a few years of data exist (since March 2021), so "3 of 3 years" is suggestive, not proof; adjacent low and high months usually mean one spike, not a season.
 - Market scans and `seasonal` download missing history into a local archive the first time, which can take minutes; later runs fetch only new windows.
 - `update_impact` compares the same evening hours the day before and the day after an update. It shows correlation, not cause; mention other updates near the same date if relevant.
+- `portfolio_check` reads the user's own positions and, if RuneLite is installed, fills from RuneLite's saved offers. It is read-only; tell the user the `osrs portfolio` command to run for changes such as adding or closing a position.
 - Prices move. Give the time of the data when it matters, and never present a margin as guaranteed.

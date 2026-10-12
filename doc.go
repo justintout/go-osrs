@@ -14,6 +14,8 @@
 //   - quests: quest requirements across prerequisite trees
 //   - bossing: boss GP per hour, hours to pet, hours to collection log
 //   - market: price moves, single-order bursts, cycles, update impact
+//   - portfolio: investments checked against their plans
+//   - runelite: Grand Exchange offers from RuneLite profile files
 //   - backtest: strategy replay with conservative fills, tax, buy limits
 //   - archive: price history in SQLite, filled on demand
 //   - craft: crafting trees down to raw materials

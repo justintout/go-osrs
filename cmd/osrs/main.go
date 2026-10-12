@@ -172,6 +172,8 @@ func run(ctx context.Context, args []string, w io.Writer) error {
 		return serveMCP(ctx, d, cmds)
 	case "cache":
 		return cacheCmd(ctx, d, args[1:], w)
+	case "portfolio":
+		return portfolioCmd(ctx, d, args[1:], w)
 	case "version":
 		_, err := fmt.Fprintln(w, version())
 		return err
@@ -204,5 +206,6 @@ func usage(w io.Writer, cmds []command) {
 	}
 	fmt.Fprintf(w, "  %-16s %s\n  %-16s %s\n  %-16s %s\n", "mcp", "serve every command as an MCP tool over stdio",
 		"cache", "status, clear, or warm the on-disk response cache", "version", "print the version")
+	fmt.Fprintf(w, "  %-16s %s\n", "portfolio", "track investments: add, fill, close, remove, sync (from RuneLite), list, check, watch, schedule")
 	fmt.Fprintln(w, "\nRun \"osrs <command> -h\" for a command's flags.\nSet OSRS_USER_AGENT to identify yourself to the APIs, WOM_API_KEY for a higher Wise Old Man rate limit,\nand OSRS_NO_CACHE=1 to skip the on-disk cache.")
 }

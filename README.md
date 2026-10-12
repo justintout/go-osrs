@@ -24,6 +24,8 @@ Tools built on them:
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
 - [`bossing`](./bossing/): every boss's loot GP per hour, hours to its pet, and hours to finish its collection log.
 - [`market`](./market/): items breaking from their own price baseline, single-order bursts, hour-of-day, day-of-week, and month-of-year price cycles tested on held-out history, and price changes across game updates.
+- [`portfolio`](./portfolio/): investment positions checked against targets, exit windows, drawdowns, and game updates.
+- [`runelite`](./runelite/): reads Grand Exchange offers from RuneLite's local profile files.
 - [`backtest`](./backtest/): replays trading strategies against price history with conservative fills, tax, and buy limits.
 - [`archive`](./archive/): Grand Exchange price history in SQLite, filled only with the windows a caller asks for.
 - [`craft`](./craft/): an item's full crafting tree down to raw materials, as text or a Mermaid diagram.
@@ -63,6 +65,19 @@ claude mcp add osrs -- osrs mcp
 ```
 
 Set `OSRS_USER_AGENT` to identify yourself to the APIs, and `WOM_API_KEY` for a higher Wise Old Man rate limit.
+
+## Investment tracking
+
+`osrs portfolio` tracks Grand Exchange investments in `portfolio.json` in your config directory.
+
+```sh
+osrs portfolio add "Zenyte shard" --quantity 1 --price 16200000 --target 19000000 --exit-from 2027-01-15 --exit-by 2027-02-28
+osrs portfolio check          # P&L after tax, targets, exit windows, drawdowns, stale offers, game updates naming the item
+osrs portfolio watch --every 6h --notify desktop   # or a Discord webhook URL
+osrs portfolio schedule --every 6h                 # prints a launchd agent and a cron line; installs nothing
+```
+
+If RuneLite is installed, `check`, `watch`, and `sync` read the offers RuneLite's Grand Exchange plugin saves in `~/.runelite/profiles2` and update fills and sales automatically. They only read the files and never touch the game. Set `OSRS_ACCOUNT` to one display name to ignore other accounts. `portfolio_check` is also an MCP tool.
 
 ## Agent skills
 
