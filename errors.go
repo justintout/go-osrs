@@ -19,7 +19,7 @@ type StatusError struct {
 }
 
 func (e *StatusError) Error() string {
-	return fmt.Sprintf("osrs: GET %s: status %d", e.URL, e.StatusCode)
+	return fmt.Sprintf("osrs: %s: status %d", e.URL, e.StatusCode)
 }
 
 // Is lets errors.Is match ErrNotFound and ErrRateLimited.
