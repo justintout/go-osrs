@@ -9,6 +9,7 @@ go get github.com/justintout/go-osrs
 ## Packages
 
 - [`prices`](./prices/): OSRS Wiki real-time prices, volumes, timeseries, item lookup by name, and GE tax.
+- [`ge`](./ge/): official Jagex Grand Exchange guide prices, trends, and 180-day history.
 - [`skills`](./skills/): skill names, XP table with virtual levels, and combat level.
 - [`hiscores`](./hiscores/): Jagex hiscores for all 10 game modes, account-type inference, and paged leaderboards.
 - [`woodcutting`](./woodcutting/): XP table and woodcutting training plans.
