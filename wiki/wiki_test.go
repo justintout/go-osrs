@@ -39,7 +39,10 @@ func TestParseRarity(t *testing.T) {
 
 func TestDrops(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		want := `bucket("dropsline").select("drop_json","rare_drop_table").where("page_name","Vorkath").limit(5000).run()`
+		want := `bucket("dropsline").select("page_name","drop_json","rare_drop_table").where("page_name","Vorkath").limit(5000).run()`
+		if r.URL.Query().Get("smaxage") != "3600" {
+			t.Errorf("smaxage = %q", r.URL.Query().Get("smaxage"))
+		}
 		if got := r.URL.Query().Get("query"); got != want {
 			t.Errorf("query = %s", got)
 		}

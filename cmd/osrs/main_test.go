@@ -46,7 +46,12 @@ func TestMCP(t *testing.T) {
 	ctx := context.Background()
 	serverT, clientT := mcp.NewInMemoryTransports()
 	cmds := commands()
-	if _, err := newMCPServer(newDeps(), cmds).Connect(ctx, serverT, nil); err != nil {
+	t.Setenv("OSRS_NO_CACHE", "1")
+	d, err := newDeps()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := newMCPServer(d, cmds).Connect(ctx, serverT, nil); err != nil {
 		t.Fatal(err)
 	}
 	session, err := mcp.NewClient(&mcp.Implementation{Name: "test"}, nil).Connect(ctx, clientT, nil)

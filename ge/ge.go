@@ -22,14 +22,14 @@ const defaultBaseURL = "https://secure.runescape.com/m=itemdb_oldschool/api"
 
 // Client queries the Jagex Grand Exchange catalogue.
 type Client struct {
-	t       transport.Client
+	t       *transport.Client
 	baseURL string
 }
 
 // NewClient creates a Client. Jagex expects a descriptive user agent.
 func NewClient(userAgent string, options ...Option) *Client {
 	c := &Client{
-		t:       transport.Client{HTTP: http.DefaultClient, UserAgent: userAgent},
+		t:       transport.New(http.DefaultClient, userAgent, 250*time.Millisecond),
 		baseURL: defaultBaseURL,
 	}
 	for _, o := range options {

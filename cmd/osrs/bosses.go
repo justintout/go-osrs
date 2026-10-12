@@ -6,7 +6,6 @@ import (
 	"math"
 	"sort"
 	"strings"
-	"sync"
 	"unicode"
 
 	"github.com/justintout/go-osrs/bossing"
@@ -189,40 +188,24 @@ func squash(s string) string {
 	}, s)
 }
 
-// fetchDrops loads each distinct page's drop table, four at a time.
+// fetchDrops groups the wiki's full drop table by page, keeping the pages
+// that bosses use. One cached table pull replaces a request per boss.
 func fetchDrops(ctx context.Context, d *deps, pages map[string]bossPage) (map[string][]wiki.Drop, error) {
-	seen := map[string]bool{}
-	var list []string
+	want := map[string]bool{}
 	for _, p := range pages {
-		if !seen[p.page] {
-			seen[p.page] = true
-			list = append(list, p.page)
+		want[p.page] = true
+	}
+	all, err := d.wiki.AllDrops(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string][]wiki.Drop{}
+	for _, dr := range all {
+		if want[dr.Page] {
+			out[dr.Page] = append(out[dr.Page], dr)
 		}
 	}
-	var (
-		mu       sync.Mutex
-		wg       sync.WaitGroup
-		firstErr error
-		out      = map[string][]wiki.Drop{}
-		sem      = make(chan struct{}, 4)
-	)
-	for _, page := range list {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			drops, err := d.wiki.Drops(ctx, page)
-			mu.Lock()
-			defer mu.Unlock()
-			if err != nil && firstErr == nil {
-				firstErr = err
-			}
-			out[page] = drops
-		}()
-	}
-	wg.Wait()
-	return out, firstErr
+	return out, nil
 }
 
 // lootValue values one unit of an item: the instant-sell price after tax,

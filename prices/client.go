@@ -4,7 +4,9 @@ package prices
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/justintout/go-osrs/cache"
 	"github.com/justintout/go-osrs/internal/transport"
 )
 
@@ -16,7 +18,7 @@ const (
 
 // Client queries the OSRS Wiki Real-time Prices API.
 type Client struct {
-	t       transport.Client
+	t       *transport.Client
 	baseURL string
 }
 
@@ -25,7 +27,7 @@ type Client struct {
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Please_set_a_descriptive_User-Agent!
 func NewClient(userAgent string, options ...Option) *Client {
 	c := &Client{
-		t:       transport.Client{HTTP: http.DefaultClient, UserAgent: userAgent},
+		t:       transport.New(http.DefaultClient, userAgent, 100*time.Millisecond),
 		baseURL: defaultBaseURL,
 	}
 	for _, o := range options {
@@ -36,6 +38,12 @@ func NewClient(userAgent string, options ...Option) *Client {
 
 // Option configures a Client.
 type Option func(*Client)
+
+// WithCache stores responses in c, following the server's freshness
+// headers and revalidating with ETags where the server sends them.
+func WithCache(c *cache.Cache) Option {
+	return func(cl *Client) { cl.t.Cache = c }
+}
 
 // WithHTTPClient sets the HTTP client used for requests.
 func WithHTTPClient(httpClient *http.Client) Option {

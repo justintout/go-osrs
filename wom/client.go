@@ -2,8 +2,8 @@
 // snapshots, achievements, groups, and competitions.
 // https://docs.wiseoldman.net
 //
-// Without an API key, Wise Old Man allows 20 requests a minute. Over the
-// limit, calls return an error matching osrs.ErrRateLimited.
+// Without an API key, Wise Old Man allows 20 requests a minute, so the
+// client spaces requests 3 seconds apart.
 package wom
 
 import (
@@ -11,7 +11,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/justintout/go-osrs/cache"
 	"github.com/justintout/go-osrs/internal/transport"
 )
 
@@ -19,7 +21,7 @@ const defaultBaseURL = "https://api.wiseoldman.net/v2"
 
 // Client queries the Wise Old Man API.
 type Client struct {
-	t       transport.Client
+	t       *transport.Client
 	baseURL string
 }
 
@@ -27,7 +29,7 @@ type Client struct {
 // agent.
 func NewClient(userAgent string, options ...Option) *Client {
 	c := &Client{
-		t:       transport.Client{HTTP: http.DefaultClient, UserAgent: userAgent, Header: http.Header{}},
+		t:       transport.New(http.DefaultClient, userAgent, 3*time.Second),
 		baseURL: defaultBaseURL,
 	}
 	for _, o := range options {
@@ -39,14 +41,24 @@ func NewClient(userAgent string, options ...Option) *Client {
 // Option configures a Client.
 type Option func(*Client)
 
+// WithCache stores responses in c, following the server's freshness
+// headers and revalidating with ETags where the server sends them.
+func WithCache(c *cache.Cache) Option {
+	return func(cl *Client) { cl.t.Cache = c }
+}
+
 // WithHTTPClient sets the HTTP client used for requests.
 func WithHTTPClient(httpClient *http.Client) Option {
 	return func(c *Client) { c.t.HTTP = httpClient }
 }
 
-// WithAPIKey sends a Wise Old Man API key, which raises the rate limit.
+// WithAPIKey sends a Wise Old Man API key, which raises the rate limit
+// from 20 to 100 requests a minute.
 func WithAPIKey(key string) Option {
-	return func(c *Client) { c.t.Header.Set("x-api-key", key) }
+	return func(c *Client) {
+		c.t.Header.Set("x-api-key", key)
+		c.t.MinInterval = 600 * time.Millisecond
+	}
 }
 
 // WithBaseURL sets the API base URL, for proxies and tests.

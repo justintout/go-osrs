@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/justintout/go-osrs/cache"
 	"github.com/justintout/go-osrs/internal/transport"
 )
 
@@ -18,7 +21,7 @@ const defaultAPIURL = "https://oldschool.runescape.wiki/api.php"
 
 // Client queries the OSRS Wiki API.
 type Client struct {
-	t      transport.Client
+	t      *transport.Client
 	apiURL string
 }
 
@@ -26,7 +29,7 @@ type Client struct {
 // agent.
 func NewClient(userAgent string, options ...Option) *Client {
 	c := &Client{
-		t:      transport.Client{HTTP: http.DefaultClient, UserAgent: userAgent},
+		t:      transport.New(http.DefaultClient, userAgent, 500*time.Millisecond),
 		apiURL: defaultAPIURL,
 	}
 	for _, o := range options {
@@ -38,6 +41,12 @@ func NewClient(userAgent string, options ...Option) *Client {
 // Option configures a Client.
 type Option func(*Client)
 
+// WithCache stores responses in c, following the server's freshness
+// headers and revalidating with ETags where the server sends them.
+func WithCache(c *cache.Cache) Option {
+	return func(cl *Client) { cl.t.Cache = c }
+}
+
 // WithHTTPClient sets the HTTP client used for requests.
 func WithHTTPClient(httpClient *http.Client) Option {
 	return func(c *Client) { c.t.HTTP = httpClient }
@@ -48,8 +57,24 @@ func WithAPIURL(url string) Option {
 	return func(c *Client) { c.apiURL = url }
 }
 
+// Cache lifetimes sent as maxage and smaxage. api.php responses are
+// otherwise private and uncacheable; with these, Cloudflare serves repeat
+// queries from its edge instead of the wiki's servers, and the local
+// cache keeps them as long.
+const (
+	pageTTL  = time.Hour
+	tableTTL = 24 * time.Hour
+)
+
 func (c *Client) api(ctx context.Context, params url.Values, v any) error {
+	return c.apiTTL(ctx, params, v, pageTTL)
+}
+
+func (c *Client) apiTTL(ctx context.Context, params url.Values, v any, ttl time.Duration) error {
 	params.Set("format", "json")
+	secs := strconv.Itoa(int(ttl.Seconds()))
+	params.Set("maxage", secs)
+	params.Set("smaxage", secs)
 	return c.t.GetJSON(ctx, c.apiURL+"?"+params.Encode(), v)
 }
 
@@ -121,11 +146,15 @@ func (q *Query) String() string {
 // slice of structs with json tags matching the selected fields. Use Flag
 // for BOOLEAN fields.
 func (c *Client) Run(ctx context.Context, q *Query, rows any) error {
+	return c.run(ctx, q, rows, pageTTL)
+}
+
+func (c *Client) run(ctx context.Context, q *Query, rows any, ttl time.Duration) error {
 	var res struct {
 		Error  string          `json:"error"`
 		Bucket json.RawMessage `json:"bucket"`
 	}
-	if err := c.api(ctx, url.Values{"action": {"bucket"}, "query": {q.String()}}, &res); err != nil {
+	if err := c.apiTTL(ctx, url.Values{"action": {"bucket"}, "query": {q.String()}}, &res, ttl); err != nil {
 		return err
 	}
 	if res.Error != "" {

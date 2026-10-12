@@ -13,10 +13,10 @@ import (
 	"runtime/debug"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/justintout/go-osrs/cache"
 	"github.com/justintout/go-osrs/ge"
 	"github.com/justintout/go-osrs/hiscores"
 	"github.com/justintout/go-osrs/prices"
@@ -31,42 +31,49 @@ type deps struct {
 	ge       *ge.Client
 	wiki     *wiki.Client
 	wom      *wom.Client
-
-	catalogMu sync.Mutex
-	catalog   *prices.Catalog
+	// cache is nil when OSRS_NO_CACHE is set.
+	cache *cache.Cache
 }
 
-func newDeps() *deps {
+func newDeps() (*deps, error) {
 	ua := os.Getenv("OSRS_USER_AGENT")
 	if ua == "" {
 		ua = fmt.Sprintf("go-osrs/%s (https://github.com/justintout/go-osrs)", version())
 	}
-	var womOpts []wom.Option
+	var (
+		c         *cache.Cache
+		priceOpts []prices.Option
+		wikiOpts  []wiki.Option
+		womOpts   []wom.Option
+	)
+	if os.Getenv("OSRS_NO_CACHE") == "" {
+		var err error
+		if c, err = cache.Default(); err != nil {
+			return nil, err
+		}
+		priceOpts, wikiOpts, womOpts = append(priceOpts, prices.WithCache(c)), append(wikiOpts, wiki.WithCache(c)), append(womOpts, wom.WithCache(c))
+	}
 	if key := os.Getenv("WOM_API_KEY"); key != "" {
 		womOpts = append(womOpts, wom.WithAPIKey(key))
 	}
 	return &deps{
 		hiscores: hiscores.NewClient(ua),
-		prices:   prices.NewClient(ua),
+		prices:   prices.NewClient(ua, priceOpts...),
 		ge:       ge.NewClient(ua),
-		wiki:     wiki.NewClient(ua),
+		wiki:     wiki.NewClient(ua, wikiOpts...),
 		wom:      wom.NewClient(ua, womOpts...),
-	}
+		cache:    c,
+	}, nil
 }
 
-// itemCatalog loads the wiki item mapping once per process, so the MCP
-// server reuses it across tool calls. A failed load is retried next call.
+// itemCatalog indexes the item mapping. The disk cache serves the mapping
+// for an hour, as the prices API's headers allow.
 func (d *deps) itemCatalog(ctx context.Context) (*prices.Catalog, error) {
-	d.catalogMu.Lock()
-	defer d.catalogMu.Unlock()
-	if d.catalog == nil {
-		items, err := d.prices.Mapping(ctx)
-		if err != nil {
-			return nil, err
-		}
-		d.catalog = prices.NewCatalog(items)
+	items, err := d.prices.Mapping(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return d.catalog, nil
+	return prices.NewCatalog(items), nil
 }
 
 // marketData fetches the item catalog, latest prices, and 24h volumes.
@@ -131,11 +138,16 @@ func run(ctx context.Context, args []string, w io.Writer) error {
 		usage(w, cmds)
 		return nil
 	}
-	d := newDeps()
-	if args[0] == "mcp" {
-		return serveMCP(ctx, d, cmds)
+	d, err := newDeps()
+	if err != nil {
+		return err
 	}
-	if args[0] == "version" {
+	switch args[0] {
+	case "mcp":
+		return serveMCP(ctx, d, cmds)
+	case "cache":
+		return cacheCmd(ctx, d, args[1:], w)
+	case "version":
 		_, err := fmt.Fprintln(w, version())
 		return err
 	}
@@ -165,6 +177,7 @@ func usage(w io.Writer, cmds []command) {
 	for _, c := range cmds {
 		fmt.Fprintf(w, "  %-16s %s\n", c.name, c.summary)
 	}
-	fmt.Fprintf(w, "  %-16s %s\n  %-16s %s\n", "mcp", "serve every command as an MCP tool over stdio", "version", "print the version")
-	fmt.Fprintln(w, "\nRun \"osrs <command> -h\" for a command's flags.\nSet OSRS_USER_AGENT to identify yourself to the APIs and WOM_API_KEY for a higher Wise Old Man rate limit.")
+	fmt.Fprintf(w, "  %-16s %s\n  %-16s %s\n  %-16s %s\n", "mcp", "serve every command as an MCP tool over stdio",
+		"cache", "status, clear, or warm the on-disk response cache", "version", "print the version")
+	fmt.Fprintln(w, "\nRun \"osrs <command> -h\" for a command's flags.\nSet OSRS_USER_AGENT to identify yourself to the APIs, WOM_API_KEY for a higher Wise Old Man rate limit,\nand OSRS_NO_CACHE=1 to skip the on-disk cache.")
 }

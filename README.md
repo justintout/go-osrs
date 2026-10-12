@@ -30,6 +30,17 @@ Tools built on them:
 
 Every client takes a `context.Context` and requires a descriptive User-Agent, because the OSRS Wiki and Jagex block generic ones. HTTP errors are `*osrs.StatusError` values that match `osrs.ErrNotFound` and `osrs.ErrRateLimited` with `errors.Is`.
 
+## Caching and API etiquette
+
+Clients space requests to each host and wait out short `429 Retry-After` responses. The `prices`, `wiki`, and `wom` clients accept `WithCache`, which stores responses on disk:
+
+- Responses follow the server's `max-age` and `Expires`, then revalidate with `ETag` or `Last-Modified`, so an unchanged response costs a `304`.
+- Price averages for windows that have closed never change and stay cached for good.
+- Wiki API requests send `maxage` and `smaxage`, so Cloudflare serves repeat queries instead of the wiki's servers. Whole tables are cached for a day.
+- Jagex hiscores and catalogue responses are marked `no-cache` and are not stored.
+
+The `osrs` CLI and MCP server use the cache in your user cache directory. `osrs cache warm` fetches the large wiki tables once; `osrs cache status` and `osrs cache clear` manage it; `OSRS_NO_CACHE=1` turns it off.
+
 ## CLI and MCP server
 
 ```sh

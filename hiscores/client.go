@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/justintout/go-osrs/internal/transport"
 )
@@ -46,14 +47,14 @@ var Modes = []Mode{Regular, Ironman, Hardcore, Ultimate, Deadman, Seasonal, Tour
 
 // Client queries the Jagex hiscores.
 type Client struct {
-	t       transport.Client
+	t       *transport.Client
 	baseURL string
 }
 
 // NewClient creates a Client. Jagex expects a descriptive user agent.
 func NewClient(userAgent string, options ...Option) *Client {
 	c := &Client{
-		t:       transport.Client{HTTP: http.DefaultClient, UserAgent: userAgent},
+		t:       transport.New(http.DefaultClient, userAgent, 250*time.Millisecond),
 		baseURL: defaultBaseURL,
 	}
 	for _, o := range options {
