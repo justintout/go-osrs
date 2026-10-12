@@ -10,12 +10,15 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/debug"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/justintout/go-osrs/archive"
 	"github.com/justintout/go-osrs/cache"
 	"github.com/justintout/go-osrs/ge"
 	"github.com/justintout/go-osrs/hiscores"
@@ -33,6 +36,28 @@ type deps struct {
 	wom      *wom.Client
 	// cache is nil when OSRS_NO_CACHE is set.
 	cache *cache.Cache
+
+	archiveMu sync.Mutex
+	archive   *archive.Archive
+}
+
+// priceArchive opens the SQLite price archive in the cache directory on
+// first use.
+func (d *deps) priceArchive() (*archive.Archive, error) {
+	d.archiveMu.Lock()
+	defer d.archiveMu.Unlock()
+	if d.archive != nil {
+		return d.archive, nil
+	}
+	if d.cache == nil {
+		return nil, errors.New("market scans keep price history in the cache directory; unset OSRS_NO_CACHE")
+	}
+	a, err := archive.Open(filepath.Join(d.cache.Dir(), "prices.db"), d.prices)
+	if err != nil {
+		return nil, err
+	}
+	d.archive = a
+	return a, nil
 }
 
 func newDeps() (*deps, error) {

@@ -99,12 +99,16 @@ var priceHistoryCmd = newCommand("price-history", "show an item's price history 
 				out.Updates = append(out.Updates, u)
 			}
 		}
+		window, err := step.Duration()
+		if err != nil {
+			return priceHistoryOut{}, err
+		}
 		rows := ts.Data[max(len(ts.Data)-orDefault(in.Points, 48), 0):]
 		for _, p := range rows {
 			r := historyRow{Time: p.Timestamp, BuyPrice: p.AvgHighPrice, BuyVolume: p.HighPriceVolume, SellPrice: p.AvgLowPrice, SellVolume: p.LowPriceVolume}
 			for _, u := range out.Updates {
 				// Mark the first window at or after the update's day.
-				if !p.Timestamp.Before(u.Date.Truncate(24*time.Hour)) && p.Timestamp.Sub(u.Date.Truncate(24*time.Hour)) < stepDuration(step) {
+				if !p.Timestamp.Before(u.Date.Truncate(24*time.Hour)) && p.Timestamp.Sub(u.Date.Truncate(24*time.Hour)) < window {
 					r.Update = "update: " + u.Title
 				}
 			}
@@ -112,18 +116,6 @@ var priceHistoryCmd = newCommand("price-history", "show an item's price history 
 		}
 		return out, nil
 	})
-
-func stepDuration(s prices.Timestep) time.Duration {
-	switch s {
-	case prices.OneHour:
-		return time.Hour
-	case prices.SixHour:
-		return 6 * time.Hour
-	case prices.TwentyFourHour:
-		return 24 * time.Hour
-	}
-	return 5 * time.Minute
-}
 
 func priceCell(p int) string {
 	if p == 0 {

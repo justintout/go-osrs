@@ -23,7 +23,8 @@ Tools built on them:
 - [`profit`](./profit/): live high alch, recipe, and NPC shop resale profits after tax, filtered by trade volume.
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
 - [`bossing`](./bossing/): every boss's loot GP per hour, hours to its pet, and hours to finish its collection log.
-- [`market`](./market/): items breaking from their own price baseline, single-order bursts in price history, and price changes across game updates.
+- [`market`](./market/): items breaking from their own price baseline, single-order bursts, hour-of-day price cycles and bot-dump hours tested on held-out days, and price changes across game updates.
+- [`archive`](./archive/): Grand Exchange price history in SQLite, filled only with the windows a caller asks for.
 - [`craft`](./craft/): an item's full crafting tree down to raw materials, as text or a Mermaid diagram.
 - [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.
 - [`woodcutting`](./woodcutting/): woodcutting tree data and plans.
@@ -38,6 +39,8 @@ Clients space requests to each host and wait out short `429 Retry-After` respons
 - Price averages for windows that have closed never change and stay cached for good.
 - Wiki API requests send `maxage` and `smaxage`, so Cloudflare serves repeat queries instead of the wiki's servers. Whole tables are cached for a day.
 - Jagex hiscores and catalogue responses are marked `no-cache` and are not stored.
+
+Price history for market scans goes into a SQLite archive (`prices.db`) in the same directory. It downloads only the windows a scan needs and does not already have, so history builds up from use rather than a bulk download.
 
 The `osrs` CLI and MCP server use the cache in your user cache directory. `osrs cache warm` fetches the large wiki tables once; `osrs cache status` and `osrs cache clear` manage it; `OSRS_NO_CACHE=1` turns it off.
 

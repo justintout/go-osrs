@@ -14,6 +14,7 @@ Use the `osrs` MCP tools when they are loaded, otherwise `osrs <command> --json`
 | Step | Tool / command |
 | --- | --- |
 | Find moves worth explaining | `movers` / `osrs movers --json` |
+| Hour-of-day cycles and bot-dump hours | `cycles` / `osrs cycles ["<item>"] --json` |
 | Order flow by side, single-order bursts, updates in range | `price_history` / `osrs price-history "<item>" --step 5m --json` (then `1h`, `24h` for context) |
 | In-game context: uses, sources, alch floor, update mentions, recent wiki edits, search links | `item_context` / `osrs item-context "<item>" --json` |
 | What an update did across the market | `update_impact` / `osrs update-impact "<title>" --json` |
@@ -23,7 +24,7 @@ Use the `osrs` MCP tools when they are loaded, otherwise `osrs <command> --json`
 
 1. **Confirm the move.** Run `price_history` at 5m. Read both sides: `buy_*` is trades at the instant-buy price, `sell_*` at the instant-sell price. Note when the move started and whether both sides moved.
 2. **Check for a single order.** A `burst` that accounts for most of the move, with `buy_limit_share` at or under 1, while the other side keeps trading at its normal price, is one large order, not a repricing. Check whether it repeats about 4 hours later, when the buy limit resets; repeats mean deliberate accumulation.
-3. **Check the timescale.** Run `price_history` at 1h and 24h. A move that holds across both sides for hours or days with rising volume is a real change in supply or demand.
+3. **Check the timescale.** Run `price_history` at 1h and 24h. A move that holds across both sides for hours or days with rising volume is a real change in supply or demand. Run `cycles "<item>"`: a "spike" at the item's usual high hour may just be its daily cycle.
 4. **Look for in-game causes.** Run `item_context`:
    - `used_in` / `made_from`: a new or changed recipe creates demand. Check those related items for the same move.
    - `update_mentions` with recent dates, and `recent_edits` clustered near the move: content changed. Read the update with `wiki_summary`.
@@ -49,6 +50,7 @@ Use the `osrs` MCP tools when they are loaded, otherwise `osrs <command> --json`
 | Supply shock | Sell-side price falls with heavy sell volume across many windows | Drop-rate change, new source, or a guide popularizing the method |
 | Bot ban wave | Sudden scarcity in botted resources (logs, ores, herbs, fish) and the price climbs; or dumps before bans | Ban-wave posts; several botted items moving at once |
 | Price floor or ceiling | Price pinned at high alch or a shop price | `high_alch`, `shops` |
+| Daily cycle | The same low and high UTC hours most days; selling bunched in a few hours (`dump_share` well above 12.5%) | `cycles` held-out wins; the dump hours line up with the low hour |
 | Thin market noise | Big percentage moves on a few trades | Low `volume_24h`; few trades per window |
 
 ## Report shape

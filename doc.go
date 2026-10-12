@@ -13,7 +13,8 @@
 //   - profit: high alch, recipe, and shop resale profits at live prices
 //   - quests: quest requirements across prerequisite trees
 //   - bossing: boss GP per hour, hours to pet, hours to collection log
-//   - market: unusual price moves and game update impact
+//   - market: price moves, single-order bursts, daily cycles, update impact
+//   - archive: price history in SQLite, filled on demand
 //   - craft: crafting trees down to raw materials
 //   - planner: skill training plans by fewest actions or best GP per XP
 //   - woodcutting: woodcutting tree data and plans

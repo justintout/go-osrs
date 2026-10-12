@@ -1,6 +1,7 @@
 package market
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -51,5 +52,33 @@ func TestBursts(t *testing.T) {
 	got := Bursts(pts, 13000)
 	if len(got) != 1 || got[0].Side != "buy" || got[0].Price != 990 || got[0].BuyLimitShare < 0.76 || got[0].BuyLimitShare > 0.77 {
 		t.Errorf("bursts = %+v", got)
+	}
+}
+
+func TestDailyCycles(t *testing.T) {
+	cat := prices.NewCatalog([]prices.Item{{ID: 1, Name: "Cyclic"}, {ID: 2, Name: "Flat"}})
+	start := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
+	series := map[int][]prices.TimeseriesDatapoint{}
+	for h := range 24 * 12 {
+		ts := start.Add(time.Duration(h) * time.Hour)
+		// Cheap at 06:00 UTC, dear at 18:00, with sells bunched at 05-07.
+		price := 1000 + int(60*math.Sin(2*math.Pi*float64(ts.Hour()-12)/24))
+		sell := 10
+		if ts.Hour() >= 5 && ts.Hour() <= 7 {
+			sell = 200
+		}
+		series[1] = append(series[1], prices.TimeseriesDatapoint{Timestamp: ts, AvgHighPrice: price, HighPriceVolume: 10, AvgLowPrice: price, LowPriceVolume: sell})
+		series[2] = append(series[2], prices.TimeseriesDatapoint{Timestamp: ts, AvgHighPrice: 500 + h%2, HighPriceVolume: 10, AvgLowPrice: 500, LowPriceVolume: 10})
+	}
+	got := DailyCycles(series, cat, 6)
+	if len(got) != 2 || got[0].Name != "Cyclic" {
+		t.Fatalf("cycles = %+v", got)
+	}
+	c := got[0]
+	if c.LowHour != 6 || c.HighHour != 18 || c.Consistency != 1 || c.Edge < 0.09 || c.DumpHour != 5 || c.DumpShare < 0.6 {
+		t.Errorf("cyclic = %+v", c)
+	}
+	if got[1].Edge > 0 {
+		t.Errorf("flat item has edge %v", got[1].Edge)
 	}
 }

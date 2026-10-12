@@ -30,6 +30,21 @@ const (
 	TwentyFourHour Timestep = "24h"
 )
 
+// Duration returns the length of one window.
+func (t Timestep) Duration() (time.Duration, error) {
+	switch t {
+	case FiveMinute:
+		return 5 * time.Minute, nil
+	case OneHour:
+		return time.Hour, nil
+	case SixHour:
+		return 6 * time.Hour, nil
+	case TwentyFourHour:
+		return 24 * time.Hour, nil
+	}
+	return 0, fmt.Errorf("prices: unknown timestep %q", string(t))
+}
+
 // Timeseries is a struct representing a timeseries of average low/high prices and volumes for a given ItemID
 type Timeseries struct {
 	ItemID int                   `json:"itemId"`

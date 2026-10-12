@@ -18,10 +18,22 @@ func (c *Client) FiveMinute(ctx context.Context) (Averages, error) {
 // FiveMinuteStartingAt returns 5-minute average prices and volumes for the
 // window starting at t, which must fall on a 5-minute boundary.
 func (c *Client) FiveMinuteStartingAt(ctx context.Context, t time.Time) (Averages, error) {
-	if t.Unix()%300 != 0 {
-		return nil, fmt.Errorf("prices: %s is not on a 5-minute boundary", t)
+	return c.AveragesAt(ctx, FiveMinute, t)
+}
+
+// AveragesAt returns average prices and volumes for every item in the
+// window of the given timestep starting at t, which must fall on that
+// timestep's boundary. Data goes back to March 2021. Windows that have
+// closed never change, so with a cache they are fetched only once.
+func (c *Client) AveragesAt(ctx context.Context, step Timestep, t time.Time) (Averages, error) {
+	d, err := step.Duration()
+	if err != nil {
+		return nil, err
 	}
-	return c.averages(ctx, fmt.Sprintf("/5m?timestamp=%d", t.Unix()), closed(t, 5*time.Minute)...)
+	if t.Unix()%int64(d.Seconds()) != 0 {
+		return nil, fmt.Errorf("prices: %s is not on a %s boundary", t, step)
+	}
+	return c.averages(ctx, fmt.Sprintf("/%s?timestamp=%d", step, t.Unix()), closed(t, d)...)
 }
 
 // OneHour returns the latest hourly average prices and volumes for all
@@ -34,10 +46,7 @@ func (c *Client) OneHour(ctx context.Context) (Averages, error) {
 // OneHourStartingAt returns hourly average prices and volumes for the hour
 // starting at t, which must fall on an hour boundary.
 func (c *Client) OneHourStartingAt(ctx context.Context, t time.Time) (Averages, error) {
-	if t.Unix()%3600 != 0 {
-		return nil, fmt.Errorf("prices: %s is not on an hour boundary", t)
-	}
-	return c.averages(ctx, fmt.Sprintf("/1h?timestamp=%d", t.Unix()), closed(t, time.Hour)...)
+	return c.AveragesAt(ctx, OneHour, t)
 }
 
 // closed keeps averages for a window that ended over ten minutes ago
