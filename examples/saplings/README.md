@@ -7,7 +7,7 @@ This service calculates the profit from buying tree seeds and selling the corres
 To run the service, execute the following command from the root of the repository:
 
 ```bash
-go run cmd/saplings/main.go
+cd examples && go run ./saplings
 ```
 
 The service will be available at `http://localhost:8080`.

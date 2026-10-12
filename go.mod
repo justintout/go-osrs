@@ -1,7 +1,3 @@
-module github.com/justintout/osrs
+module github.com/justintout/go-osrs
 
-go 1.23.0
-
-toolchain go1.24.3
-
-require github.com/a-h/templ v0.3.960
+go 1.26.0

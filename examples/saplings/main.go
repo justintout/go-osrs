@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/justintout/osrs/cmd/saplings/templates"
-	"github.com/justintout/osrs/items"
+	"github.com/justintout/go-osrs/examples/saplings/templates"
+	"github.com/justintout/go-osrs/items"
 )
 
 const iconBaseURL = "https://oldschool.runescape.wiki/images/"

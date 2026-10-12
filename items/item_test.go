@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/justintout/osrs/items"
+	"github.com/justintout/go-osrs/items"
 )
 
 func testClientMapping(t *testing.T) {
