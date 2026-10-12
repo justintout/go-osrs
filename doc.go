@@ -8,6 +8,7 @@
 //   - wom: Wise Old Man tracking, gains, groups, competitions
 //   - odds: drop chances and expected kills for a set of drops
 //   - profit: high alch and recipe profits at live prices
+//   - quests: quest requirements across prerequisite trees
 //   - skills: XP table, virtual levels, combat level
 //   - woodcutting: woodcutting XP planning
 package osrs

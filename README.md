@@ -14,6 +14,7 @@ go get github.com/justintout/go-osrs
 - [`wom`](./wom/): Wise Old Man players, gains, snapshots, achievements, groups, and competitions.
 - [`odds`](./odds/): drop chances, dry-streak rarity, and expected kills to collect a set.
 - [`profit`](./profit/): live high alch and recipe profits after tax, filtered by trade volume.
+- [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
 - [`skills`](./skills/): skill names, XP table with virtual levels, and combat level.
 - [`hiscores`](./hiscores/): Jagex hiscores for all 10 game modes, account-type inference, and paged leaderboards.
 - [`woodcutting`](./woodcutting/): XP table and woodcutting training plans.
