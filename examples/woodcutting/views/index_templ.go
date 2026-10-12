@@ -175,7 +175,7 @@ func PlayerInfo(player *hiscores.Player) templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		if woodcuttingSkill, ok := player.Skills["Woodcutting"]; ok {
+		if woodcuttingSkill, ok := player.Skill("Woodcutting"); ok {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p>Current Woodcutting Level: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

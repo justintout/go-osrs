@@ -9,7 +9,7 @@ go get github.com/justintout/go-osrs
 ## Packages
 
 - [`prices`](./prices/): OSRS Wiki real-time Grand Exchange prices, item mapping, and timeseries.
-- [`hiscores`](./hiscores/): Jagex hiscores lookups.
+- [`hiscores`](./hiscores/): Jagex hiscores for all 10 game modes, account-type inference, and paged leaderboards.
 - [`woodcutting`](./woodcutting/): XP table and woodcutting training plans.
 
 Every client takes a `context.Context` and requires a descriptive User-Agent, because the OSRS Wiki and Jagex block generic ones. HTTP errors are `*osrs.StatusError` values that match `osrs.ErrNotFound` and `osrs.ErrRateLimited` with `errors.Is`.

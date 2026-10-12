@@ -1,17 +1,21 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/justintout/go-osrs"
 	"github.com/justintout/go-osrs/examples/woodcutting/views"
 	"github.com/justintout/go-osrs/hiscores"
 	"github.com/justintout/go-osrs/woodcutting"
 )
 
 func main() {
+	hc := hiscores.NewClient("go-osrs woodcutting example (https://github.com/justintout/go-osrs)")
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		views.Index(woodcutting.Trees, nil, nil).Render(r.Context(), w)
 	})
@@ -46,10 +50,13 @@ func main() {
 
 	http.HandleFunc("/lookup", func(w http.ResponseWriter, r *http.Request) {
 		username := r.URL.Query().Get("username")
-		player, err := hiscores.GetPlayer(username)
-		if err != nil {
-			// Handle error appropriately
+		player, err := hc.Lookup(r.Context(), username, hiscores.Regular)
+		if errors.Is(err, osrs.ErrNotFound) {
 			http.Error(w, "Player not found", http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			http.Error(w, "Hiscores lookup failed", http.StatusBadGateway)
 			return
 		}
 		views.PlayerInfo(player).Render(r.Context(), w)

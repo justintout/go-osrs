@@ -56,7 +56,7 @@ templ Index(trees []woodcutting.Tree, actions []woodcutting.Action, player *hisc
 }
 
 templ PlayerInfo(player *hiscores.Player) {
-	if woodcuttingSkill, ok := player.Skills["Woodcutting"]; ok {
+	if woodcuttingSkill, ok := player.Skill("Woodcutting"); ok {
 		<p>
 			Current Woodcutting Level: { fmt.Sprintf("%d", woodcuttingSkill.Level) }
 			<br/>
