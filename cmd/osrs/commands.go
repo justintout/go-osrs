@@ -6,6 +6,6 @@ func commands() []command {
 		priceCmd, guidePriceCmd,
 		wikiItemCmd, wikiMonsterCmd, dropsCmd, wikiSearchCmd, wikiSummaryCmd,
 		womPlayerCmd, womGainsCmd, womUpdateCmd, womGroupCmd, womCompetitionCmd,
-		xpCmd, combatCmd,
+		oddsCmd, xpCmd, combatCmd,
 	}
 }
