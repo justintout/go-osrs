@@ -35,7 +35,7 @@ func (o alchsOut) text() string {
 
 var alchsCmd = newCommand("alchs", "list the most profitable items to buy and high alch at live prices, after nature rune cost",
 	func(ctx context.Context, d *deps, in alchsIn) (alchsOut, error) {
-		cat, latest, vols, err := market(ctx, d)
+		cat, latest, vols, err := marketData(ctx, d)
 		if err != nil {
 			return alchsOut{}, err
 		}
@@ -107,7 +107,7 @@ var recipesCmd = newCommand("recipes", "list profitable item recipes at live pri
 		if err != nil {
 			return recipesOut{}, err
 		}
-		cat, latest, vols, err := market(ctx, d)
+		cat, latest, vols, err := marketData(ctx, d)
 		if err != nil {
 			return recipesOut{}, err
 		}

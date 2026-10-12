@@ -85,7 +85,7 @@ var bossesCmd = newCommand("bosses", "rank every boss by loot GP per hour, hours
 			return bossesOut{}, err
 		}
 		out := bossesOut{Account: account}
-		cat, latest, _, err := market(ctx, d)
+		cat, latest, _, err := marketData(ctx, d)
 		if err != nil {
 			return bossesOut{}, err
 		}

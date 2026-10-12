@@ -69,8 +69,8 @@ func (d *deps) itemCatalog(ctx context.Context) (*prices.Catalog, error) {
 	return d.catalog, nil
 }
 
-// market fetches the item catalog, latest prices, and 24h volumes.
-func market(ctx context.Context, d *deps) (*prices.Catalog, prices.Prices, map[int]int, error) {
+// marketData fetches the item catalog, latest prices, and 24h volumes.
+func marketData(ctx context.Context, d *deps) (*prices.Catalog, prices.Prices, map[int]int, error) {
 	cat, err := d.itemCatalog(ctx)
 	if err != nil {
 		return nil, nil, nil, err

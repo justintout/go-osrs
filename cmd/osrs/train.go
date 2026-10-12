@@ -105,7 +105,7 @@ func trainingMethods(ctx context.Context, d *deps, skill string, goal planner.Go
 	if err != nil {
 		return nil, err
 	}
-	cat, latest, vols, err := market(ctx, d)
+	cat, latest, vols, err := marketData(ctx, d)
 	if err != nil {
 		return nil, err
 	}

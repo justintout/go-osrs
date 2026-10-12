@@ -36,7 +36,7 @@ var shopsCmd = newCommand("shops", "find NPC shop items that sell on the Grand E
 		if err != nil {
 			return shopsOut{}, err
 		}
-		cat, latest, vols, err := market(ctx, d)
+		cat, latest, vols, err := marketData(ctx, d)
 		if err != nil {
 			return shopsOut{}, err
 		}
