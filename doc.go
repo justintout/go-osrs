@@ -10,8 +10,11 @@
 // Tools built on them:
 //   - skills: XP table, virtual levels, combat level
 //   - odds: drop chances and expected kills for a set of drops
-//   - profit: high alch and recipe profits at live prices
+//   - profit: high alch, recipe, and shop resale profits at live prices
 //   - quests: quest requirements across prerequisite trees
+//   - bossing: boss GP per hour, hours to pet, hours to collection log
+//   - market: unusual price moves and game update impact
+//   - craft: crafting trees down to raw materials
 //   - planner: skill training plans by fewest actions or best GP per XP
 //   - woodcutting: woodcutting tree data and plans
 package osrs

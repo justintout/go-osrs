@@ -20,8 +20,11 @@ Tools built on them:
 
 - [`skills`](./skills/): skill names, XP table with virtual levels, and combat level.
 - [`odds`](./odds/): drop chances, dry-streak rarity, and expected kills to collect a set.
-- [`profit`](./profit/): live high alch and recipe profits after tax, filtered by trade volume.
+- [`profit`](./profit/): live high alch, recipe, and NPC shop resale profits after tax, filtered by trade volume.
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
+- [`bossing`](./bossing/): every boss's loot GP per hour, hours to its pet, and hours to finish its collection log.
+- [`market`](./market/): items breaking from their own price baseline, and price changes across game updates.
+- [`craft`](./craft/): an item's full crafting tree down to raw materials, as text or a Mermaid diagram.
 - [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.
 - [`woodcutting`](./woodcutting/): woodcutting tree data and plans.
 

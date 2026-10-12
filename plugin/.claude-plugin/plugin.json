@@ -1,8 +1,8 @@
 {
   "name": "osrs",
   "displayName": "OSRS",
-  "version": "0.1.0",
-  "description": "Old School RuneScape tools for agents: hiscores, live GE prices, wiki data, Wise Old Man, drop odds, quest requirements, and training plans. Requires the osrs CLI.",
+  "version": "0.2.0",
+  "description": "Old School RuneScape tools for agents: hiscores, live GE prices, wiki data, Wise Old Man, drop odds, boss value, shop arbitrage, market movers, crafting trees, quest requirements, and training plans. Requires the osrs CLI.",
   "author": {
     "name": "Justin Tout",
     "url": "https://github.com/justintout"
