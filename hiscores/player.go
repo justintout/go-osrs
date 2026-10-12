@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/url"
 	"strings"
+
+	"github.com/justintout/go-osrs/skills"
 )
 
 // Player is a player's entry on one mode's hiscores.
@@ -73,4 +75,23 @@ func (p *Player) Activity(name string) (Activity, bool) {
 func (p *Player) Overall() Skill {
 	s, _ := p.Skill("Overall")
 	return s
+}
+
+// CombatLevel returns the player's combat level from their combat skills.
+// Unranked skills count at their minimum level.
+func (p *Player) CombatLevel() int {
+	level := func(s skills.Skill) int {
+		sk, ok := p.Skill(string(s))
+		if !ok || sk.Level < 1 {
+			if s == skills.Hitpoints {
+				return 10
+			}
+			return 1
+		}
+		return sk.Level
+	}
+	return skills.CombatLevel(
+		level(skills.Attack), level(skills.Strength), level(skills.Defence), level(skills.Hitpoints),
+		level(skills.Ranged), level(skills.Magic), level(skills.Prayer),
+	)
 }

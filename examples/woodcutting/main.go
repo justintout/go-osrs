@@ -10,6 +10,7 @@ import (
 	"github.com/justintout/go-osrs"
 	"github.com/justintout/go-osrs/examples/woodcutting/views"
 	"github.com/justintout/go-osrs/hiscores"
+	"github.com/justintout/go-osrs/skills"
 	"github.com/justintout/go-osrs/woodcutting"
 )
 
@@ -27,8 +28,8 @@ func main() {
 			http.Error(w, "levels must satisfy 1 <= start < target <= 99", http.StatusBadRequest)
 			return
 		}
-		startXp := woodcutting.XPForLevel(startLevel)
-		targetXp := woodcutting.XPForLevel(targetLevel)
+		startXp := skills.XPForLevel(startLevel)
+		targetXp := skills.XPForLevel(targetLevel)
 		disabledTrees := r.URL.Query()["disabledTrees"]
 		overrideLevels := make(map[string]int)
 		for _, tree := range woodcutting.Trees {

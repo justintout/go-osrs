@@ -2,6 +2,8 @@ package woodcutting
 
 import (
 	"math"
+
+	"github.com/justintout/go-osrs/skills"
 )
 
 type Action struct {
@@ -30,7 +32,7 @@ func Calculate(startXp, targetXp int, disabledTrees []string, overrideLevels map
 	}
 
 	for currentXp < targetXp {
-		currentLevel := LevelForXP(currentXp)
+		currentLevel := skills.Level(currentXp)
 		bestTree := Tree{}
 		bestXpRate := 0.0
 
@@ -64,7 +66,7 @@ func Calculate(startXp, targetXp int, disabledTrees []string, overrideLevels map
 
 		xpToNextBreakpoint := targetXp
 		if nextTreeLevel != 0 {
-			xpForNextTreeLevel := XPForLevel(nextTreeLevel)
+			xpForNextTreeLevel := skills.XPForLevel(nextTreeLevel)
 			if xpForNextTreeLevel < xpToNextBreakpoint {
 				xpToNextBreakpoint = xpForNextTreeLevel
 			}
