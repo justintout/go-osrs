@@ -55,12 +55,13 @@ templ Index(trees []woodcutting.Tree, actions []woodcutting.Action, player *hisc
 	}
 }
 
+// PlayerInfo shows a player's Woodcutting level and, through an htmx
+// out-of-band swap, sets the start level field to it.
 templ PlayerInfo(player *hiscores.Player) {
 	if woodcuttingSkill, ok := player.Skill("Woodcutting"); ok {
 		<p>
-			Current Woodcutting Level: { fmt.Sprintf("%d", woodcuttingSkill.Level) }
-			<br/>
-			Current Woodcutting XP: { fmt.Sprintf("%d", woodcuttingSkill.XP) }
+			{ player.Name }: Woodcutting level { fmt.Sprintf("%d", max(woodcuttingSkill.Level, 1)) }, { fmt.Sprintf("%d", max(woodcuttingSkill.XP, 0)) } XP
 		</p>
+		<input type="number" id="startLevel" name="startLevel" value={ fmt.Sprintf("%d", max(woodcuttingSkill.Level, 1)) } hx-swap-oob="true"/>
 	}
 }

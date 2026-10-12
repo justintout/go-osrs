@@ -9,9 +9,9 @@ import (
 func TestOffers(t *testing.T) {
 	dir := t.TempDir()
 	props := `#RuneLite configuration
-rsprofile.rsprofile.7hAvrZZI.displayName=Main Acct
-geoffer.rsprofile.7hAvrZZI.2={"itemId"\:22209,"quantitySold"\:50,"totalQuantity"\:500,"price"\:20069,"spent"\:1000000,"state"\:"BUYING"}
-geoffer.rsprofile.7hAvrZZI.0={"itemId"\:19529,"quantitySold"\:0,"totalQuantity"\:1,"price"\:16200000,"spent"\:0,"state"\:"BUYING"}
+rsprofile.rsprofile.AbCdEf12.displayName=Main Acct
+geoffer.rsprofile.AbCdEf12.2={"itemId"\:22209,"quantitySold"\:50,"totalQuantity"\:500,"price"\:20100,"spent"\:1000000,"state"\:"BUYING"}
+geoffer.rsprofile.AbCdEf12.0={"itemId"\:19529,"quantitySold"\:0,"totalQuantity"\:1,"price"\:15000000,"spent"\:0,"state"\:"BUYING"}
 other.setting=true
 `
 	if err := os.WriteFile(filepath.Join(dir, "$rsprofile--1.properties"), []byte(props), 0o644); err != nil {

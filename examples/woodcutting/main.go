@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/justintout/go-osrs"
@@ -14,8 +16,16 @@ import (
 	"github.com/justintout/go-osrs/woodcutting"
 )
 
+// Command woodcutting serves a woodcutting training planner: which trees
+// to cut from one level to another, with an optional hiscores lookup.
 func main() {
-	hc := hiscores.NewClient("go-osrs woodcutting example (https://github.com/justintout/go-osrs)")
+	addr := flag.String("addr", ":8080", "address to listen on")
+	flag.Parse()
+	ua := os.Getenv("OSRS_USER_AGENT")
+	if ua == "" {
+		ua = "go-osrs woodcutting example (https://github.com/justintout/go-osrs)"
+	}
+	hc := hiscores.NewClient(ua)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		views.Index(woodcutting.Trees, nil, nil).Render(r.Context(), w)
@@ -67,8 +77,6 @@ func main() {
 		views.PlayerInfo(player).Render(r.Context(), w)
 	})
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("listening on %s", *addr)
+	log.Fatal(http.ListenAndServe(*addr, nil))
 }

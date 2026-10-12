@@ -1,16 +1,32 @@
 package templates
 
-templ Index(results []ProfitResult) {
+templ Index(rows []Row) {
 	<!DOCTYPE html>
-	<html>
+	<html lang="en">
 		<head>
-			<title>OSRS Sapling Profit Calculator</title>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>Sapling profits</title>
+			<style>
+				body { font-family: system-ui, sans-serif; margin: 1rem; }
+				table { border-collapse: collapse; width: 100%; }
+				th, td { border-bottom: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+				img { vertical-align: middle; height: 24px; }
+				.loss { color: darkred; }
+				.thin { opacity: 0.6; }
+				.good { color: darkgreen; }
+				@media (prefers-color-scheme: dark) {
+					body { background: #111; color: #ddd; }
+					th, td { border-color: #333; }
+					.loss { color: #f66; }
+					.good { color: #6c6; }
+				}
+			</style>
 		</head>
 		<body>
-			<h1>OSRS Sapling Profit Calculator</h1>
-			<div id="profits-result">
-				@Profits(results)
-			</div>
+			<h1>Sapling profits</h1>
+			<p>Buy seeds with a patient buy offer, grow them in plant pots, and sell the saplings with a patient sell offer. Rows are sorted by profit per 4-hour seed buy limit.</p>
+			@Profits(rows)
 		</body>
 	</html>
 }

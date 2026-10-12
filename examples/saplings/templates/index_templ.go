@@ -5,12 +5,10 @@ package templates
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-)
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
 
-func Index(results []ProfitResult) templ.Component {
+func Index(rows []Row) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -31,15 +29,15 @@ func Index(results []ProfitResult) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html><head><title>OSRS Sapling Profit Calculator</title></head><body><h1>OSRS Sapling Profit Calculator</h1><div id=\"profits-result\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Sapling profits</title><style>\n\t\t\t\tbody { font-family: system-ui, sans-serif; margin: 1rem; }\n\t\t\t\ttable { border-collapse: collapse; width: 100%; }\n\t\t\t\tth, td { border-bottom: 1px solid #ddd; padding: 6px 8px; text-align: left; }\n\t\t\t\timg { vertical-align: middle; height: 24px; }\n\t\t\t\t.loss { color: darkred; }\n\t\t\t\t.thin { opacity: 0.6; }\n\t\t\t\t.good { color: darkgreen; }\n\t\t\t\t@media (prefers-color-scheme: dark) {\n\t\t\t\t\tbody { background: #111; color: #ddd; }\n\t\t\t\t\tth, td { border-color: #333; }\n\t\t\t\t\t.loss { color: #f66; }\n\t\t\t\t\t.good { color: #6c6; }\n\t\t\t\t}\n\t\t\t</style></head><body><h1>Sapling profits</h1><p>Buy seeds with a patient buy offer, grow them in plant pots, and sell the saplings with a patient sell offer. Rows are sorted by profit per 4-hour seed buy limit.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Profits(results).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Profits(rows).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

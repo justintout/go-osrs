@@ -1,69 +1,80 @@
 package templates
 
-import "fmt"
+import (
+	"strconv"
+	"strings"
+)
 
-type ProfitResult struct {
-	Name             string
-	Profit           int
-	SeedBuyPrice     int
-	SaplingSellPrice int
-	SeedImage        string
-	SaplingImage     string
-	BuyLimitCost     string
+// Row is one seed and the sapling it grows into.
+type Row struct {
+	Tree           string
+	SeedPrice      int
+	SaplingPrice   int
+	Profit         int
+	ProfitPerLimit int
+	SeedLimit      int
+	SaplingVolume  int
+	SeedImage      string
+	SaplingImage   string
+	// Priced is false when either item has no recent trade.
+	Priced bool
 }
 
-templ Profits(results []ProfitResult) {
-	<style>
-		body {
-			font-family: sans-serif;
+// gp formats coins with thousands separators.
+func gp(n int) string {
+	s := strconv.Itoa(n)
+	neg := strings.HasPrefix(s, "-")
+	s = strings.TrimPrefix(s, "-")
+	var b strings.Builder
+	for i, r := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			b.WriteByte(',')
 		}
-		table {
-			border-collapse: collapse;
-			width: 100%;
-		}
-		th, td {
-			border: 1px solid #ddd;
-			padding: 8px;
-			text-align: left;
-		}
-		th {
-			background-color: #f2f2f2;
-		}
-		img {
-			vertical-align: middle;
-		}
-		.low-profit {
-			opacity: 0.5;
-		}
-		.high-profit {
-			color: darkgreen;
-		}
-		.negative-profit {
-			color: darkred;
-		}
-	</style>
+		b.WriteRune(r)
+	}
+	if neg {
+		return "-" + b.String()
+	}
+	return b.String()
+}
+
+func profitClass(p int) string {
+	switch {
+	case p < 0:
+		return "loss"
+	case p < 500:
+		return "thin"
+	}
+	return "good"
+}
+
+templ Profits(rows []Row) {
 	<table>
-		<tr>
-			<th>Tree</th>
-			<th>Seed (Buy)</th>
-			<th>Sapling (Sell)</th>
-			<th>Profit (after tax)</th>
-		</tr>
-		for _, r := range results {
+		<thead>
 			<tr>
-				<td>{ r.Name }</td>
-				<td><img src={ r.SeedImage } alt={ r.Name }/> { fmt.Sprintf("%d gp", r.SeedBuyPrice) }<br/><small>Buy limit cost: { r.BuyLimitCost } gp</small></td>
-				<td><img src={ r.SaplingImage } alt={ r.Name }/> { fmt.Sprintf("%d gp", r.SaplingSellPrice) }</td>
-				if r.Profit < 0 {
-					<td class="negative-profit">{ fmt.Sprintf("%d gp", r.Profit) }</td>
-				} else if r.Profit < 600 {
-					<td class="low-profit">{ fmt.Sprintf("%d gp", r.Profit) }</td>
-				} else if r.Profit > 1000 {
-					<td class="high-profit">{ fmt.Sprintf("%d gp", r.Profit) }</td>
-				} else {
-					<td>{ fmt.Sprintf("%d gp", r.Profit) }</td>
-				}
+				<th>Tree</th>
+				<th>Seed (buy)</th>
+				<th>Sapling (sell)</th>
+				<th>Profit each, after tax</th>
+				<th>Profit per 4h seed limit</th>
+				<th>Sapling 24h volume</th>
 			</tr>
-		}
+		</thead>
+		<tbody>
+			for _, r := range rows {
+				<tr>
+					<td>{ r.Tree }</td>
+					<td><img src={ r.SeedImage } alt=""/> { gp(r.SeedPrice) }</td>
+					<td><img src={ r.SaplingImage } alt=""/> { gp(r.SaplingPrice) }</td>
+					if r.Priced {
+						<td class={ profitClass(r.Profit) }>{ gp(r.Profit) }</td>
+						<td class={ profitClass(r.Profit) }>{ gp(r.ProfitPerLimit) } <small>({ strconv.Itoa(r.SeedLimit) } seeds)</small></td>
+					} else {
+						<td colspan="2" class="thin">no recent trades</td>
+					}
+					<td>{ gp(r.SaplingVolume) }</td>
+				</tr>
+			}
+		</tbody>
 	</table>
 }
