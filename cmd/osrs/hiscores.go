@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -199,4 +200,95 @@ func activityID(ctx context.Context, d *deps, mode hiscores.Mode, name string) (
 		return a.ID, a.Name, nil
 	}
 	return 0, "", fmt.Errorf("unknown activity %q", name)
+}
+
+type compareIn struct {
+	Players string `json:"players" arg:"" jsonschema:"comma-separated player names"`
+	Mode    string `json:"mode,omitempty" jsonschema:"hiscores mode, regular by default"`
+}
+
+type compareOut struct {
+	Players []string `json:"players"`
+	// Skills maps each skill to the players' levels, in Players order.
+	Skills []compareRow `json:"skills"`
+	// Errors maps players whose lookup failed to the reason.
+	Errors map[string]string `json:"errors,omitempty"`
+}
+
+type compareRow struct {
+	Skill  string  `json:"skill"`
+	Levels []int   `json:"levels"`
+	XP     []int64 `json:"xp"`
+}
+
+func (o compareOut) text() string {
+	var b strings.Builder
+	t := newTable(&b, append([]string{"SKILL"}, o.Players...)...)
+	for _, r := range o.Skills {
+		row := []string{r.Skill}
+		best := slices.Max(r.XP)
+		for i, l := range r.Levels {
+			cell := strconv.Itoa(l)
+			if r.XP[i] == best && best > 0 {
+				cell += " *"
+			}
+			row = append(row, cell)
+		}
+		t.row(row...)
+	}
+	t.flush()
+	for p, e := range o.Errors {
+		fmt.Fprintf(&b, "%s: %s\n", p, e)
+	}
+	b.WriteString("* most XP\n")
+	return b.String()
+}
+
+var compareCmd = newCommand("compare", "compare several players' levels side by side",
+	func(ctx context.Context, d *deps, in compareIn) (compareOut, error) {
+		var names []string
+		for _, n := range strings.Split(in.Players, ",") {
+			if n = strings.TrimSpace(n); n != "" {
+				names = append(names, n)
+			}
+		}
+		if len(names) < 2 {
+			return compareOut{}, fmt.Errorf("give at least two comma-separated players")
+		}
+		mode := hiscores.Mode(in.Mode)
+		if mode == "" {
+			mode = hiscores.Regular
+		}
+		out := compareOut{}
+		var found []*hiscores.Player
+		for _, r := range d.hiscores.LookupMany(ctx, names, mode, 4) {
+			switch {
+			case errors.Is(r.Err, osrs.ErrNotFound):
+				out.addError(r.Name, fmt.Sprintf("not on the %s hiscores", mode))
+			case r.Err != nil:
+				out.addError(r.Name, r.Err.Error())
+			default:
+				out.Players = append(out.Players, r.Player.Name)
+				found = append(found, r.Player)
+			}
+		}
+		if len(found) == 0 {
+			return out, fmt.Errorf("no players found")
+		}
+		for i, s := range found[0].Skills {
+			row := compareRow{Skill: s.Name}
+			for _, p := range found {
+				row.Levels = append(row.Levels, p.Skills[i].Level)
+				row.XP = append(row.XP, p.Skills[i].XP)
+			}
+			out.Skills = append(out.Skills, row)
+		}
+		return out, nil
+	})
+
+func (o *compareOut) addError(player, msg string) {
+	if o.Errors == nil {
+		o.Errors = map[string]string{}
+	}
+	o.Errors[player] = msg
 }

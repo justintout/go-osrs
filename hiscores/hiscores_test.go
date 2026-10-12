@@ -58,6 +58,18 @@ func TestLookup(t *testing.T) {
 	}
 }
 
+func TestLookupMany(t *testing.T) {
+	c := fakeHiscores(t, map[string]int64{"hiscore_oldschool": 100})
+	res := c.LookupMany(context.Background(), []string{"Lynx Titan", "Lynx Titan"}, hiscores.Regular, 2)
+	if len(res) != 2 || res[0].Err != nil || res[1].Player.Overall().XP != 100 {
+		t.Errorf("results = %+v", res)
+	}
+	res = c.LookupMany(context.Background(), []string{"Lynx Titan"}, hiscores.Ironman, 1)
+	if !errors.Is(res[0].Err, osrs.ErrNotFound) {
+		t.Errorf("ironman err = %v", res[0].Err)
+	}
+}
+
 func TestLookupAccount(t *testing.T) {
 	const (
 		reg  = "hiscore_oldschool"
