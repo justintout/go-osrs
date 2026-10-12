@@ -19,6 +19,11 @@ func NewCatalog(items []Item) *Catalog {
 	return c
 }
 
+// Items returns every item in the catalog.
+func (c *Catalog) Items() []Item {
+	return c.items
+}
+
 // ByID returns the item with the given ID.
 func (c *Catalog) ByID(id int) (Item, bool) {
 	i, ok := c.byID[id]

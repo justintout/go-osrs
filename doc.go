@@ -6,6 +6,8 @@
 //   - hiscores: Jagex hiscores, account-type inference, leaderboards
 //   - wiki: OSRS Wiki items, monsters, drops, search, Bucket queries
 //   - wom: Wise Old Man tracking, gains, groups, competitions
+//   - odds: drop chances and expected kills for a set of drops
+//   - profit: high alch and recipe profits at live prices
 //   - skills: XP table, virtual levels, combat level
 //   - woodcutting: woodcutting XP planning
 package osrs

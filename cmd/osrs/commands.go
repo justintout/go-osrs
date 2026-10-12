@@ -3,7 +3,7 @@ package main
 func commands() []command {
 	return []command{
 		hiscoresCmd, accountCmd, leaderboardCmd,
-		priceCmd, guidePriceCmd,
+		priceCmd, guidePriceCmd, alchsCmd, recipesCmd,
 		wikiItemCmd, wikiMonsterCmd, dropsCmd, wikiSearchCmd, wikiSummaryCmd,
 		womPlayerCmd, womGainsCmd, womUpdateCmd, womGroupCmd, womCompetitionCmd,
 		oddsCmd, xpCmd, combatCmd,

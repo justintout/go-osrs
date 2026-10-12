@@ -69,6 +69,20 @@ func (d *deps) itemCatalog(ctx context.Context) (*prices.Catalog, error) {
 	return d.catalog, nil
 }
 
+// market fetches the item catalog, latest prices, and 24h volumes.
+func market(ctx context.Context, d *deps) (*prices.Catalog, prices.Prices, map[int]int, error) {
+	cat, err := d.itemCatalog(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	latest, err := d.prices.Latest(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	vols, _, err := d.prices.Volumes(ctx)
+	return cat, latest, vols, err
+}
+
 // findItem resolves an item name, suggesting close names when there is
 // no exact match.
 func (d *deps) findItem(ctx context.Context, name string) (prices.Item, error) {
