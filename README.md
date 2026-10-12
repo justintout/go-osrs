@@ -29,7 +29,7 @@ Tools built on them:
 - [`backtest`](./backtest/): replays trading strategies against price history with conservative fills, tax, and buy limits.
 - [`archive`](./archive/): Grand Exchange price history in SQLite, filled only with the windows a caller asks for.
 - [`craft`](./craft/): an item's full crafting tree down to raw materials, as text or a Mermaid diagram.
-- [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.
+- [`planner`](./planner/): training plans that rebalance at every method unlock and XP-rate breakpoint, minimizing hours, coins, actions, or hours plus coins at your value of time, with market caps assigned by a minimum-cost flow.
 - [`woodcutting`](./woodcutting/): woodcutting tree data and plans.
 
 Every client takes a `context.Context` and requires a descriptive User-Agent, because the OSRS Wiki and Jagex block generic ones. HTTP errors are `*osrs.StatusError` values that match `osrs.ErrNotFound` and `osrs.ErrRateLimited` with `errors.Is`.

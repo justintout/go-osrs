@@ -30,12 +30,12 @@ func Calculate(startXP, targetXP int, disabledTrees []string, overrideLevels map
 		methods = append(methods, planner.Method{Name: t.Name, Level: level, XP: t.XP})
 		byName[t.Name] = t
 	}
-	steps, err := planner.Plan(methods, startXP, targetXP, planner.FewestActions)
+	plan, err := planner.Solve(methods, startXP, targetXP, planner.Goal{Objective: planner.Actions})
 	if err != nil {
 		return nil, err
 	}
-	actions := make([]Action, len(steps))
-	for i, s := range steps {
+	actions := make([]Action, len(plan.Steps))
+	for i, s := range plan.Steps {
 		actions[i] = Action{Tree: byName[s.Method.Name], Count: s.Actions}
 	}
 	return actions, nil

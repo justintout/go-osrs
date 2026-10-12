@@ -134,3 +134,30 @@ func (c *Client) BossRates(ctx context.Context, accountType string) (map[string]
 	}
 	return rates, nil
 }
+
+// TrainingRate is the XP per hour Wise Old Man assumes for efficient
+// training from StartXP until the next rate.
+type TrainingRate struct {
+	StartXP     int     `json:"startExp"`
+	XPPerHour   float64 `json:"rate"`
+	Description string  `json:"description"`
+}
+
+// SkillRates returns the efficient training rates behind EHP, keyed by
+// skill name such as "woodcutting". accountType is "main" or "ironman".
+// Skills trained only as a bonus of others, such as Hitpoints, are not
+// listed.
+func (c *Client) SkillRates(ctx context.Context, accountType string) (map[string][]TrainingRate, error) {
+	rows, err := get[[]struct {
+		Skill   string         `json:"skill"`
+		Methods []TrainingRate `json:"methods"`
+	}](ctx, c, "/efficiency/rates", url.Values{"metric": {"ehp"}, "type": {accountType}})
+	if err != nil {
+		return nil, err
+	}
+	rates := make(map[string][]TrainingRate, len(rows))
+	for _, r := range rows {
+		rates[r.Skill] = r.Methods
+	}
+	return rates, nil
+}

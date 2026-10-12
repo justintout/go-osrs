@@ -19,6 +19,6 @@
 //   - backtest: strategy replay with conservative fills, tax, buy limits
 //   - archive: price history in SQLite, filled on demand
 //   - craft: crafting trees down to raw materials
-//   - planner: skill training plans by fewest actions or best GP per XP
+//   - planner: breakpoint-aware training plans by hours, coins, or both
 //   - woodcutting: woodcutting tree data and plans
 package osrs
