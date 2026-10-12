@@ -50,8 +50,7 @@ func ExpectedKills(p float64) float64 {
 }
 
 // ExpectedKillsForAll returns the mean kills to get every drop in ps at
-// least once, treating drops as independent. It is the sum over n of the
-// chance the set is still incomplete after n kills.
+// least once, treating drops as independent.
 func ExpectedKillsForAll(ps ...float64) float64 {
 	if len(ps) == 0 {
 		return 0
@@ -61,18 +60,50 @@ func ExpectedKillsForAll(ps ...float64) float64 {
 			return math.Inf(1)
 		}
 	}
-	// Stop once the remaining tail is negligible. The rarest drop bounds
-	// how slowly the tail shrinks.
+	if len(ps) <= 16 {
+		return inclusionExclusion(ps)
+	}
+	return tailSum(ps)
+}
+
+// inclusionExclusion computes the exact mean: the sum over every nonempty
+// subset S of (-1)^(|S|+1) / P(some drop in S on a kill).
+func inclusionExclusion(ps []float64) float64 {
+	total := 0.0
+	for mask := 1; mask < 1<<len(ps); mask++ {
+		none, size := 1.0, 0
+		for i, p := range ps {
+			if mask&(1<<i) != 0 {
+				none *= 1 - p
+				size++
+			}
+		}
+		term := 1 / (1 - none)
+		if size%2 == 0 {
+			term = -term
+		}
+		total += term
+	}
+	return total
+}
+
+// tailSum adds up the chance the set is still incomplete after each kill,
+// stopping once the remaining tail is negligible.
+func tailSum(ps []float64) float64 {
 	rarest := ps[0]
 	for _, p := range ps {
 		rarest = min(rarest, p)
 	}
-	limit := 50 / rarest
+	missing := make([]float64, len(ps)) // chance drop i is still missing
+	for i := range missing {
+		missing[i] = 1
+	}
 	total := 0.0
-	for n := 0.0; n < limit; n++ {
+	for n := 0.0; n < 50/rarest; n++ {
 		complete := 1.0
-		for _, p := range ps {
-			complete *= 1 - math.Pow(1-p, n)
+		for i, p := range ps {
+			complete *= 1 - missing[i]
+			missing[i] *= 1 - p
 		}
 		total += 1 - complete
 	}

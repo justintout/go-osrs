@@ -7,6 +7,6 @@ func commands() []command {
 		wikiItemCmd, wikiMonsterCmd, dropsCmd, wikiSearchCmd, wikiSummaryCmd,
 		womPlayerCmd, womGainsCmd, womUpdateCmd, womGroupCmd, womCompetitionCmd,
 		questCmd, questsCmd, trainCmd,
-		oddsCmd, xpCmd, combatCmd,
+		bossesCmd, oddsCmd, xpCmd, combatCmd,
 	}
 }

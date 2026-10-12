@@ -33,4 +33,9 @@ func TestExpectedKillsForAll(t *testing.T) {
 	if got := ExpectedKillsForAll(0.01, 0.01); !near(got, 149.75, 0.05) {
 		t.Errorf("pair = %v", got)
 	}
+	// The exact and summed paths agree.
+	ps := []float64{0.01, 0.002, 0.0005, 0.03}
+	if a, b := inclusionExclusion(ps), tailSum(ps); !near(a, b, 0.01) {
+		t.Errorf("inclusion-exclusion %v != tail sum %v", a, b)
+	}
 }
