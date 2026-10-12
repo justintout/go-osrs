@@ -5,6 +5,7 @@ linters:
       exclude-functions:
         - (io.Closer).Close
         - (io.ReadCloser).Close
+        - (*os.File).Close
         - fmt.Fprint
         - fmt.Fprintf
         - fmt.Fprintln

@@ -83,11 +83,12 @@ func (c *Cache) Put(e *Entry) error {
 	if err != nil {
 		return fmt.Errorf("cache: %w", err)
 	}
-	defer os.Remove(tmp.Name())
+	// After a successful rename the temp file is gone, so this only
+	// cleans up failed writes.
+	defer func() { _ = os.Remove(tmp.Name()) }()
 	zw := gzip.NewWriter(tmp)
 	if err := json.NewEncoder(zw).Encode(e); err != nil {
-		tmp.Close()
-		return fmt.Errorf("cache: %w", err)
+		return fmt.Errorf("cache: %w", errors.Join(err, tmp.Close()))
 	}
 	if err := errors.Join(zw.Close(), tmp.Close()); err != nil {
 		return fmt.Errorf("cache: %w", err)
