@@ -1,18 +1,16 @@
 package templates
 
-templ Index() {
+templ Index(results []ProfitResult) {
 	<!DOCTYPE html>
 	<html>
 		<head>
 			<title>OSRS Sapling Profit Calculator</title>
-			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 		</head>
 		<body>
 			<h1>OSRS Sapling Profit Calculator</h1>
-			<button hx-get="/profits" hx-target="#profits-result">
-				Calculate Profits
-			</button>
-			<div id="profits-result"></div>
+			<div id="profits-result">
+				@Profits(results)
+			</div>
 		</body>
 	</html>
 }
