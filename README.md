@@ -8,15 +8,20 @@ go get github.com/justintout/go-osrs
 
 ## Packages
 
+API clients:
+
+- [`hiscores`](./hiscores/): Jagex hiscores for all 10 game modes, account-type inference, paged leaderboards, and bulk lookups.
 - [`prices`](./prices/): OSRS Wiki real-time prices, volumes, timeseries, item lookup by name, and GE tax.
 - [`ge`](./ge/): official Jagex Grand Exchange guide prices, trends, and 180-day history.
-- [`wiki`](./wiki/): OSRS Wiki items, equipment bonuses, monsters, drop tables, page search and summaries, and raw Bucket queries.
+- [`wiki`](./wiki/): OSRS Wiki items, equipment bonuses, monsters, drop tables, recipes, quests, search, summaries, and raw Bucket queries.
 - [`wom`](./wom/): Wise Old Man players, gains, snapshots, achievements, groups, and competitions.
+
+Tools built on them:
+
+- [`skills`](./skills/): skill names, XP table with virtual levels, and combat level.
 - [`odds`](./odds/): drop chances, dry-streak rarity, and expected kills to collect a set.
 - [`profit`](./profit/): live high alch and recipe profits after tax, filtered by trade volume.
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
-- [`skills`](./skills/): skill names, XP table with virtual levels, and combat level.
-- [`hiscores`](./hiscores/): Jagex hiscores for all 10 game modes, account-type inference, and paged leaderboards.
 - [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.
 - [`woodcutting`](./woodcutting/): woodcutting tree data and plans.
 
