@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/justintout/go-osrs/examples/woodcutting/views"
 	"github.com/justintout/go-osrs/hiscores"
 	"github.com/justintout/go-osrs/woodcutting"
-	"github.com/justintout/go-osrs/examples/woodcutting/views"
 )
 
 func main() {

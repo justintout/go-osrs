@@ -1,14 +1,16 @@
-package items
+package prices
 
-// Mapping returns a slice of all items
+import "context"
+
+// Mapping returns metadata for every tradeable item.
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Mapping
-func (c *Client) Mapping() ([]Item, error) {
+func (c *Client) Mapping(ctx context.Context) ([]Item, error) {
 	var items []Item
-	err := c.get(c.baseURL+"/mapping", &items)
+	err := c.t.GetJSON(ctx, c.baseURL+"/mapping", &items)
 	return items, err
 }
 
-// Item is the representation of an item
+// Item is metadata for a tradeable item.
 type Item struct {
 	Examine  string `json:"examine"`
 	ID       int    `json:"id"`

@@ -1,25 +1,18 @@
-package items
+package prices
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 )
 
-// Timeseries returns a list of average high/low price and volume for a given id at the given timestep
+// Timeseries returns average prices and volumes for one item at the given
+// timestep, covering up to the last 365 datapoints.
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Time-series
-func (c *Client) Timeseries(id int, timestep Timestep) (Timeseries, error) {
-	res, err := c.httpClient.Get(fmt.Sprintf("https://%s/timeseries?timestep=%s&id=%d", c.baseURL, timestep, id))
-	if err != nil {
-		return Timeseries{}, err
-	}
-	if res.StatusCode != http.StatusOK {
-		return Timeseries{}, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-	defer res.Body.Close()
+func (c *Client) Timeseries(ctx context.Context, id int, timestep Timestep) (Timeseries, error) {
 	var t Timeseries
-	err = json.NewDecoder(res.Body).Decode(&t)
+	err := c.t.GetJSON(ctx, fmt.Sprintf("%s/timeseries?timestep=%s&id=%d", c.baseURL, timestep, id), &t)
 	return t, err
 }
 

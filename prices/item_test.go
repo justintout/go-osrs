@@ -1,11 +1,12 @@
-package items_test
+package prices_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/justintout/go-osrs/items"
+	"github.com/justintout/go-osrs/prices"
 )
 
 func testClientMapping(t *testing.T) {
@@ -16,8 +17,8 @@ func testClientMapping(t *testing.T) {
 	}))
 	defer s.Close()
 
-	c := items.NewClient("test", items.ForCustomEndpoint(s.URL))
-	items, err := c.Mapping()
+	c := prices.NewClient("test", prices.WithBaseURL(s.URL))
+	items, err := c.Mapping(context.Background())
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

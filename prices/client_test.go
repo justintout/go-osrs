@@ -1,4 +1,4 @@
-package items_test
+package prices_test
 
 import "testing"
 

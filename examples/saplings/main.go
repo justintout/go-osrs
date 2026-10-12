@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/justintout/go-osrs/examples/saplings/templates"
-	"github.com/justintout/go-osrs/items"
+	"github.com/justintout/go-osrs/prices"
 )
 
 const iconBaseURL = "https://oldschool.runescape.wiki/images/"
@@ -51,13 +52,13 @@ func comma(n int) string {
 }
 
 func main() {
-	c := items.NewClient("go-osrs/0.0.1 (https://github.com/justintout/go-osrs/cmd/saplings)")
+	c := prices.NewClient("go-osrs/0.0.1 (https://github.com/justintout/go-osrs/cmd/saplings)")
 
-	mapping, err := c.Mapping()
+	mapping, err := c.Mapping(context.Background())
 	if err != nil {
 		log.Fatalf("fetch item mapping: %s", err)
 	}
-	itemMap := make(map[string]items.Item, len(mapping))
+	itemMap := make(map[string]prices.Item, len(mapping))
 	for _, i := range mapping {
 		itemMap[i.Name] = i
 	}
@@ -70,7 +71,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		prices, err := c.Latest()
+		prices, err := c.Latest(r.Context())
 		if err != nil {
 			http.Error(w, fmt.Sprintf("fetch prices: %s", err), http.StatusBadGateway)
 			return

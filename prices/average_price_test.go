@@ -1,17 +1,18 @@
-package items_test
+package prices_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/justintout/go-osrs/items"
+	"github.com/justintout/go-osrs/prices"
 )
 
 func testClientFiveMinute(t *testing.T) {
 	s := avgTestServer()
-	c := items.NewClient("testing", items.ForCustomEndpoint(s.URL))
-	a, err := c.FiveMinute()
+	c := prices.NewClient("testing", prices.WithBaseURL(s.URL))
+	a, err := c.FiveMinute(context.Background())
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

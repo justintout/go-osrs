@@ -1,25 +1,26 @@
-package items
+package prices
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
 )
 
-// Latest returns the latest price spreads for all items
+// Latest returns the latest price spreads for all items.
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Latest_price_(all_items)
-func (c *Client) Latest() (Prices, error) {
+func (c *Client) Latest(ctx context.Context) (Prices, error) {
 	var p priceResponse
-	err := c.get(c.baseURL+"/latest", &p)
+	err := c.t.GetJSON(ctx, c.baseURL+"/latest", &p)
 	return p.Data, err
 }
 
-// LatestFor returns the latest price spread for the given item ID
+// LatestFor returns the latest price spread for one item.
 // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Query_parameters
-func (c *Client) LatestFor(id int) (Spread, error) {
+func (c *Client) LatestFor(ctx context.Context, id int) (Spread, error) {
 	var p priceResponse
-	err := c.get(fmt.Sprintf("%s/latest?id=%d", c.baseURL, id), &p)
+	err := c.t.GetJSON(ctx, fmt.Sprintf("%s/latest?id=%d", c.baseURL, id), &p)
 	if err != nil {
 		return Spread{}, err
 	}
@@ -47,7 +48,8 @@ func (p *Prices) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Spread is a price spread for an item
+// Spread is the latest instant-buy (High) and instant-sell (Low) price
+// for an item. A price is 0 when the item has no trade on that side.
 type Spread struct {
 	High     int
 	HighTime time.Time
