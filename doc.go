@@ -10,5 +10,6 @@
 //   - profit: high alch and recipe profits at live prices
 //   - quests: quest requirements across prerequisite trees
 //   - skills: XP table, virtual levels, combat level
-//   - woodcutting: woodcutting XP planning
+//   - planner: skill training plans by fewest actions or best GP per XP
+//   - woodcutting: woodcutting tree data and plans
 package osrs

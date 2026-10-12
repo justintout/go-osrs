@@ -21,14 +21,27 @@ type RecipeProfit struct {
 	OutputVolume24h int `json:"output_volume_24h"`
 }
 
-// Recipes prices every recipe whose output and materials all trade on the
-// Grand Exchange and returns those with a positive profit, best first.
-// It buys and sells instantly, so margins hold without waiting on offers.
+// Recipes returns the recipes from PriceRecipes with a positive profit,
+// best first.
+func Recipes(recipes []wiki.Recipe, catalog *prices.Catalog, latest prices.Prices, volumes map[int]int, minVolume int) []RecipeProfit {
+	var out []RecipeProfit
+	for _, p := range PriceRecipes(recipes, catalog, latest, volumes, minVolume) {
+		if p.Profit > 0 {
+			out = append(out, p)
+		}
+	}
+	sort.Slice(out, func(a, b int) bool { return out[a].Profit > out[b].Profit })
+	return out
+}
+
+// PriceRecipes prices every recipe whose output and materials all trade
+// on the Grand Exchange, including those that lose money. It buys and
+// sells instantly, so margins hold without waiting on offers.
 //
 // Thinly traded items have stale last-trade prices that produce fake
 // margins, so the output and every material must have traded at least
 // minVolume times in the last 24 hours.
-func Recipes(recipes []wiki.Recipe, catalog *prices.Catalog, latest prices.Prices, volumes map[int]int, minVolume int) []RecipeProfit {
+func PriceRecipes(recipes []wiki.Recipe, catalog *prices.Catalog, latest prices.Prices, volumes map[int]int, minVolume int) []RecipeProfit {
 	var out []RecipeProfit
 	for _, r := range recipes {
 		outItem, ok := catalog.ByName(r.Output.Name)
@@ -54,14 +67,10 @@ func Recipes(recipes []wiki.Recipe, catalog *prices.Catalog, latest prices.Price
 		}
 		revenue := float64(prices.AfterTax(outItem.ID, sell)) * r.Output.Quantity
 		p := RecipeProfit{Recipe: r, Cost: int(cost), Revenue: int(revenue), Profit: int(revenue - cost), OutputVolume24h: volumes[outItem.ID]}
-		if p.Profit <= 0 {
-			continue
-		}
 		if r.Ticks > 0 {
 			p.ProfitPerHour = int(float64(p.Profit) * 3600 / (r.Ticks * 0.6))
 		}
 		out = append(out, p)
 	}
-	sort.Slice(out, func(a, b int) bool { return out[a].Profit > out[b].Profit })
 	return out
 }

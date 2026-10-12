@@ -44,7 +44,11 @@ func main() {
 			}
 		}
 
-		actions := woodcutting.Calculate(startXp, targetXp, disabledTrees, overrideLevels)
+		actions, err := woodcutting.Calculate(startXp, targetXp, disabledTrees, overrideLevels)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
 		views.Results(actions).Render(r.Context(), w)
 	})

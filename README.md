@@ -17,7 +17,8 @@ go get github.com/justintout/go-osrs
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
 - [`skills`](./skills/): skill names, XP table with virtual levels, and combat level.
 - [`hiscores`](./hiscores/): Jagex hiscores for all 10 game modes, account-type inference, and paged leaderboards.
-- [`woodcutting`](./woodcutting/): XP table and woodcutting training plans.
+- [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.
+- [`woodcutting`](./woodcutting/): woodcutting tree data and plans.
 
 Every client takes a `context.Context` and requires a descriptive User-Agent, because the OSRS Wiki and Jagex block generic ones. HTTP errors are `*osrs.StatusError` values that match `osrs.ErrNotFound` and `osrs.ErrRateLimited` with `errors.Is`.
 

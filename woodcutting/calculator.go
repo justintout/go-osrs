@@ -1,95 +1,51 @@
+// Package woodcutting plans woodcutting training by tree.
 package woodcutting
 
 import (
-	"math"
+	"slices"
 
-	"github.com/justintout/go-osrs/skills"
+	"github.com/justintout/go-osrs/planner"
 )
 
+// Action is a number of logs to cut from one tree.
 type Action struct {
 	Tree  Tree
 	Count int
 }
 
-func Calculate(startXp, targetXp int, disabledTrees []string, overrideLevels map[string]int) []Action {
-	var actions []Action
-	currentXp := startXp
-
-	isTreeDisabled := func(treeName string) bool {
-		for _, disabledTree := range disabledTrees {
-			if treeName == disabledTree {
-				return true
-			}
-		}
-		return false
-	}
-
-	getTreeLevel := func(tree Tree) int {
-		if override, ok := overrideLevels[tree.Name]; ok {
-			return override
-		}
-		return tree.Level
-	}
-
-	for currentXp < targetXp {
-		currentLevel := skills.Level(currentXp)
-		bestTree := Tree{}
-		bestXpRate := 0.0
-
-		for _, tree := range Trees {
-			treeLevel := getTreeLevel(tree)
-			if currentLevel >= treeLevel && !isTreeDisabled(tree.Name) {
-				if tree.XP > bestXpRate {
-					bestTree = tree
-					bestXpRate = tree.XP
-				}
-			}
-		}
-
-		if bestXpRate == 0 {
-			// No more available trees to chop
-			break
-		}
-
-		// Find the level of the next available tree that unlocks a better
-		// XP rate. If none exists, the only remaining breakpoint is the
-		// target itself, so chop the best current tree straight to targetXp.
-		nextTreeLevel := 0
-		for _, tree := range Trees {
-			treeLevel := getTreeLevel(tree)
-			if treeLevel > currentLevel && !isTreeDisabled(tree.Name) {
-				if nextTreeLevel == 0 || treeLevel < nextTreeLevel {
-					nextTreeLevel = treeLevel
-				}
-			}
-		}
-
-		xpToNextBreakpoint := targetXp
-		if nextTreeLevel != 0 {
-			xpForNextTreeLevel := skills.XPForLevel(nextTreeLevel)
-			if xpForNextTreeLevel < xpToNextBreakpoint {
-				xpToNextBreakpoint = xpForNextTreeLevel
-			}
-		}
-		xpNeeded := xpToNextBreakpoint - currentXp
-
-		if xpNeeded <= 0 {
-			// We have reached the next breakpoint, re-evaluate the best tree
-			currentXp = xpToNextBreakpoint
+// Calculate plans the logs to cut from startXP to targetXP, using the
+// tree with the most XP per log at each level. Disabled trees are skipped,
+// and overrideLevels delays when a tree is used.
+func Calculate(startXP, targetXP int, disabledTrees []string, overrideLevels map[string]int) ([]Action, error) {
+	var methods []planner.Method
+	byName := map[string]Tree{}
+	for _, t := range Trees {
+		if slices.Contains(disabledTrees, t.Name) {
 			continue
 		}
-
-		logsNeeded := int(math.Ceil(float64(xpNeeded) / bestTree.XP))
-
-		// A breakpoint for a tree that doesn't beat the current one leaves
-		// the best tree unchanged, so extend the previous step.
-		if n := len(actions); n > 0 && actions[n-1].Tree == bestTree {
-			actions[n-1].Count += logsNeeded
-		} else {
-			actions = append(actions, Action{Tree: bestTree, Count: logsNeeded})
+		level := t.Level
+		if o, ok := overrideLevels[t.Name]; ok {
+			level = max(o, t.Level)
 		}
-		currentXp += int(float64(logsNeeded) * bestTree.XP)
+		methods = append(methods, planner.Method{Name: t.Name, Level: level, XP: t.XP})
+		byName[t.Name] = t
 	}
+	steps, err := planner.Plan(methods, startXP, targetXP, planner.FewestActions)
+	if err != nil {
+		return nil, err
+	}
+	actions := make([]Action, len(steps))
+	for i, s := range steps {
+		actions[i] = Action{Tree: byName[s.Method.Name], Count: s.Actions}
+	}
+	return actions, nil
+}
 
-	return actions
+// Methods returns the trees as planner methods.
+func Methods() []planner.Method {
+	methods := make([]planner.Method, len(Trees))
+	for i, t := range Trees {
+		methods[i] = planner.Method{Name: t.Name, Level: t.Level, XP: t.XP}
+	}
+	return methods
 }
