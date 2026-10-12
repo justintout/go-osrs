@@ -18,6 +18,25 @@ go get github.com/justintout/go-osrs
 
 Every client takes a `context.Context` and requires a descriptive User-Agent, because the OSRS Wiki and Jagex block generic ones. HTTP errors are `*osrs.StatusError` values that match `osrs.ErrNotFound` and `osrs.ErrRateLimited` with `errors.Is`.
 
+## CLI and MCP server
+
+```sh
+go install github.com/justintout/go-osrs/cmd/osrs@latest
+osrs hiscores Lynx Titan
+osrs price abyssal whip
+osrs drops Vorkath --json
+```
+
+Every command prints a table by default and JSON with `--json`. Run `osrs` for the command list.
+
+`osrs mcp` serves the same commands as MCP tools over stdio. To add it to Claude Code:
+
+```sh
+claude mcp add osrs -- osrs mcp
+```
+
+Set `OSRS_USER_AGENT` to identify yourself to the APIs, and `WOM_API_KEY` for a higher Wise Old Man rate limit.
+
 ## Examples
 
 The [`examples`](./examples/) module holds small web apps built on the library. It is a separate module, so its dependencies never reach your `go.mod`.

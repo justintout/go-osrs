@@ -5,6 +5,9 @@ linters:
       exclude-functions:
         - (io.Closer).Close
         - (io.ReadCloser).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
   exclusions:
     rules:
       - path: _test\.go
