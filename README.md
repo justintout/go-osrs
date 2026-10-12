@@ -23,7 +23,7 @@ Tools built on them:
 - [`profit`](./profit/): live high alch, recipe, and NPC shop resale profits after tax, filtered by trade volume.
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
 - [`bossing`](./bossing/): every boss's loot GP per hour, hours to its pet, and hours to finish its collection log.
-- [`market`](./market/): items breaking from their own price baseline, and price changes across game updates.
+- [`market`](./market/): items breaking from their own price baseline, single-order bursts in price history, and price changes across game updates.
 - [`craft`](./craft/): an item's full crafting tree down to raw materials, as text or a Mermaid diagram.
 - [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.
 - [`woodcutting`](./woodcutting/): woodcutting tree data and plans.
@@ -51,7 +51,7 @@ Set `OSRS_USER_AGENT` to identify yourself to the APIs, and `WOM_API_KEY` for a 
 
 ## Agent skills
 
-The [`plugin`](./plugin/) directory is a Claude Code plugin with skills that teach an agent to use these tools for player lookups, money-making decisions, goal planning, and drop odds. It also starts the MCP server. Install the CLI first, then:
+The [`plugin`](./plugin/) directory is a Claude Code plugin with skills that teach an agent to use these tools for player lookups, money-making decisions, investigating price moves, goal planning, and drop odds. It also starts the MCP server. Install the CLI first, then:
 
 ```
 /plugin marketplace add justintout/go-osrs

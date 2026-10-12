@@ -2,6 +2,7 @@ package market
 
 import (
 	"testing"
+	"time"
 
 	"github.com/justintout/go-osrs/prices"
 )
@@ -34,5 +35,21 @@ func TestCompare(t *testing.T) {
 	got := Compare(before, after, cat, 5, 100)
 	if len(got) != 1 || got[0].Before != 105 || got[0].After != 150 {
 		t.Errorf("compare = %+v", got)
+	}
+}
+
+func TestBursts(t *testing.T) {
+	var pts []prices.TimeseriesDatapoint
+	for i := range 40 {
+		pts = append(pts, prices.TimeseriesDatapoint{Timestamp: time.Unix(int64(i)*300, 0), AvgHighPrice: 260, HighPriceVolume: 20, AvgLowPrice: 250, LowPriceVolume: 30})
+	}
+	// One account buys most of its 13,000 limit at four times the price.
+	pts[30].AvgHighPrice, pts[30].HighPriceVolume = 990, 9996
+	// A big sell at the normal price is volume, not a burst.
+	pts[31].LowPriceVolume = 9000
+
+	got := Bursts(pts, 13000)
+	if len(got) != 1 || got[0].Side != "buy" || got[0].Price != 990 || got[0].BuyLimitShare < 0.76 || got[0].BuyLimitShare > 0.77 {
+		t.Errorf("bursts = %+v", got)
 	}
 }

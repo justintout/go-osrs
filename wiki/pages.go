@@ -7,30 +7,65 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // SearchResult is one page matching a search.
 type SearchResult struct {
 	Title   string `json:"title"`
 	Snippet string `json:"snippet"`
+	// Edited is when the page was last edited.
+	Edited time.Time `json:"edited"`
+}
+
+// Wiki namespaces for SearchQuery.
+const (
+	NamespaceMain   = 0
+	NamespaceUpdate = 112 // game update and news posts
+)
+
+// SearchQuery configures SearchWith.
+type SearchQuery struct {
+	Query     string
+	Namespace int
+	// Sort is "relevance" (default), "last_edit_desc", or
+	// "create_timestamp_desc".
+	Sort  string
+	Limit int
 }
 
 var tagRE = regexp.MustCompile(`<[^>]*>`)
 
-// Search returns up to limit pages matching query, best match first.
+// Search returns up to limit main pages matching query, best match first.
 func (c *Client) Search(ctx context.Context, query string, limit int) ([]SearchResult, error) {
+	return c.SearchWith(ctx, SearchQuery{Query: query, Limit: limit})
+}
+
+// SearchWith runs a search in one namespace with a chosen sort. Quote a
+// phrase in Query to match it exactly.
+func (c *Client) SearchWith(ctx context.Context, q SearchQuery) ([]SearchResult, error) {
 	var res struct {
 		Query struct {
-			Search []SearchResult `json:"search"`
+			Search []struct {
+				Title     string    `json:"title"`
+				Snippet   string    `json:"snippet"`
+				Timestamp time.Time `json:"timestamp"`
+			} `json:"search"`
 		} `json:"query"`
 	}
-	params := url.Values{"action": {"query"}, "list": {"search"}, "srsearch": {query}, "srlimit": {strconv.Itoa(limit)}}
+	params := url.Values{
+		"action": {"query"}, "list": {"search"}, "srsearch": {q.Query}, "srlimit": {strconv.Itoa(max(q.Limit, 1))},
+		"srnamespace": {strconv.Itoa(q.Namespace)}, "srprop": {"snippet|timestamp"},
+	}
+	if q.Sort != "" {
+		params.Set("srsort", q.Sort)
+	}
 	if err := c.api(ctx, params, &res); err != nil {
 		return nil, err
 	}
-	results := res.Query.Search
-	for i := range results {
-		results[i].Snippet = html.UnescapeString(tagRE.ReplaceAllString(results[i].Snippet, ""))
+	results := make([]SearchResult, len(res.Query.Search))
+	for i, r := range res.Query.Search {
+		results[i] = SearchResult{Title: r.Title, Snippet: html.UnescapeString(tagRE.ReplaceAllString(r.Snippet, "")), Edited: r.Timestamp}
 	}
 	return results, nil
 }
