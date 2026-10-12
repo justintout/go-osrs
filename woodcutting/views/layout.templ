@@ -1,0 +1,14 @@
+package views
+
+templ layout(title string) {
+	<html>
+		<head>
+			<title>{ title }</title>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+		</head>
+		<!-- htmx skips swapping error responses by default; show their messages. -->
+		<body hx-on::before-swap="if (event.detail.xhr.status >= 400) { event.detail.shouldSwap = true; event.detail.isError = false }">
+			{ children... }
+		</body>
+	</html>
+}

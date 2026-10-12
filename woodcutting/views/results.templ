@@ -1,0 +1,23 @@
+package views
+
+import "github.com/justintout/osrs/woodcutting"
+import "fmt"
+
+templ Results(actions []woodcutting.Action) {
+	<table>
+		<thead>
+			<tr>
+				<th>Tree</th>
+				<th>Count</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, action := range actions {
+				<tr>
+					<td>{ action.Tree.Name }</td>
+					<td>{ fmt.Sprintf("%d", action.Count) }</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
