@@ -1,20 +1,68 @@
 package templates
 
+import "fmt"
+
 type ProfitResult struct {
-	Name   string
-	Profit string
+	Name             string
+	Profit           int
+	SeedBuyPrice     int
+	SaplingSellPrice int
+	SeedImage        string
+	SaplingImage     string
+	BuyLimitCost     string
 }
 
 templ Profits(results []ProfitResult) {
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+		th, td {
+			border: 1px solid #ddd;
+			padding: 8px;
+			text-align: left;
+		}
+		th {
+			background-color: #f2f2f2;
+		}
+		img {
+			vertical-align: middle;
+		}
+		.low-profit {
+			opacity: 0.5;
+		}
+		.high-profit {
+			color: darkgreen;
+		}
+		.negative-profit {
+			color: darkred;
+		}
+	</style>
 	<table>
 		<tr>
 			<th>Tree</th>
-			<th>Profit</th>
+			<th>Seed (Buy)</th>
+			<th>Sapling (Sell)</th>
+			<th>Profit (after tax)</th>
 		</tr>
 		for _, r := range results {
 			<tr>
 				<td>{ r.Name }</td>
-				<td>{ r.Profit }</td>
+				<td><img src={ r.SeedImage } alt={ r.Name }/> { fmt.Sprintf("%d gp", r.SeedBuyPrice) }<br/><small>Buy limit cost: { r.BuyLimitCost } gp</small></td>
+				<td><img src={ r.SaplingImage } alt={ r.Name }/> { fmt.Sprintf("%d gp", r.SaplingSellPrice) }</td>
+				if r.Profit < 0 {
+					<td class="negative-profit">{ fmt.Sprintf("%d gp", r.Profit) }</td>
+				} else if r.Profit < 600 {
+					<td class="low-profit">{ fmt.Sprintf("%d gp", r.Profit) }</td>
+				} else if r.Profit > 1000 {
+					<td class="high-profit">{ fmt.Sprintf("%d gp", r.Profit) }</td>
+				} else {
+					<td>{ fmt.Sprintf("%d gp", r.Profit) }</td>
+				}
 			</tr>
 		}
 	</table>

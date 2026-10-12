@@ -11,7 +11,3 @@ go run cmd/saplings/main.go
 ```
 
 The service will be available at `http://localhost:8080`.
-
-## Screenshot
-
-![Screenshot of the sapling profit calculator](screenshot.png)
