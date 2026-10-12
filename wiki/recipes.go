@@ -37,30 +37,24 @@ type RecipeSkill struct {
 // through the bucket. Wiki recipes without an output item, such as
 // activities, are left out. It makes one request per 5000 rows.
 func (c *Client) Recipes(ctx context.Context) ([]Recipe, error) {
-	const page = 5000
+	rows, err := runPaged[struct {
+		Page string `json:"page_name"`
+		JSON string `json:"production_json"`
+	}](ctx, c, Bucket("recipe").Select("page_name", "production_json"))
+	if err != nil {
+		return nil, err
+	}
 	var recipes []Recipe
-	for offset := 0; ; offset += page {
-		var rows []struct {
-			Page string `json:"page_name"`
-			JSON string `json:"production_json"`
-		}
-		q := Bucket("recipe").Select("page_name", "production_json").Limit(page).Offset(offset)
-		if err := c.Run(ctx, q, &rows); err != nil {
+	for _, r := range rows {
+		rec, ok, err := parseRecipe(r.Page, r.JSON)
+		if err != nil {
 			return nil, err
 		}
-		for _, r := range rows {
-			rec, ok, err := parseRecipe(r.Page, r.JSON)
-			if err != nil {
-				return nil, err
-			}
-			if ok {
-				recipes = append(recipes, rec)
-			}
-		}
-		if len(rows) < page {
-			return recipes, nil
+		if ok {
+			recipes = append(recipes, rec)
 		}
 	}
+	return recipes, nil
 }
 
 // parseRecipe reports false for recipes with no output item, which the

@@ -116,3 +116,21 @@ type Achievement struct {
 func (c *Client) Achievements(ctx context.Context, username string) ([]Achievement, error) {
 	return get[[]Achievement](ctx, c, playerPath(username, "achievements"), nil)
 }
+
+// BossRates returns the kills per hour Wise Old Man assumes for each boss
+// when computing EHB, keyed by boss metric such as "vorkath". accountType
+// is "main" or "ironman".
+func (c *Client) BossRates(ctx context.Context, accountType string) (map[string]float64, error) {
+	rows, err := get[[]struct {
+		Boss string  `json:"boss"`
+		Rate float64 `json:"rate"`
+	}](ctx, c, "/efficiency/rates", url.Values{"metric": {"ehb"}, "type": {accountType}})
+	if err != nil {
+		return nil, err
+	}
+	rates := make(map[string]float64, len(rows))
+	for _, r := range rows {
+		rates[r.Boss] = r.Rate
+	}
+	return rates, nil
+}
