@@ -8,50 +8,90 @@ import (
 	"github.com/justintout/go-osrs/prices"
 )
 
-// DailyCycle is an item's typical price pattern across the UTC day.
-type DailyCycle struct {
+// Cycle is an item's typical price pattern within a day or a week.
+type Cycle struct {
 	ItemID int    `json:"item_id"`
 	Name   string `json:"name"`
-	// Days is how many days had enough trades to use.
-	Days int `json:"days"`
-	// LowHour and HighHour are the UTC hours where the price is usually
-	// lowest and highest, found on the earlier two thirds of the days.
-	LowHour  int `json:"low_hour"`
-	HighHour int `json:"high_hour"`
-	// Amplitude is the typical high-hour price over the low-hour price,
-	// minus one, on those earlier days.
+	// Period is "daily" (buckets are UTC hours, 0-23) or "weekly"
+	// (buckets are weekdays, 0 is Sunday).
+	Period string `json:"period"`
+	// Groups is how many days or weeks had enough trades to use.
+	Groups int `json:"groups"`
+	// Low and High are the buckets where the price is usually lowest and
+	// highest, found on the earlier two thirds of the groups.
+	Low  int `json:"low"`
+	High int `json:"high"`
+	// Amplitude is the typical high-bucket price over the low-bucket
+	// price, minus one, on those earlier groups.
 	Amplitude float64 `json:"amplitude"`
-	// Consistency is the share of the later, held-out days on which the
-	// high hour beat the low hour: Wins of TestDays.
+	// Wins of TestDays held-out groups had the high bucket beat the low
+	// bucket; Consistency is their ratio.
 	Consistency float64 `json:"consistency"`
-	TestDays    int     `json:"test_days"`
+	TestGroups  int     `json:"test_groups"`
 	Wins        int     `json:"wins"`
-	// Edge is the median held-out gain from buying at the low hour and
-	// selling at the high hour, less the 2% GE tax. It assumes trades
-	// fill at the hour's average price.
+	// Edge is the median held-out gain from buying in the low bucket and
+	// selling in the high one, less the 2% GE tax. It assumes trades fill
+	// at the bucket's average price.
 	Edge float64 `json:"edge"`
-	// DumpHour starts the 3-hour block with the most instant-sell volume,
-	// and DumpShare is that block's share of sell volume. A share well
-	// above 0.125 (3 of 24 hours) means selling clusters at that time,
-	// often a sign of bots.
-	DumpHour  int     `json:"dump_hour"`
+	// Dump starts the block with the most instant-sell volume (3 hours,
+	// or 1 day for weekly) and DumpShare is that block's share. Selling
+	// that bunches far above an even spread often comes from bots.
+	Dump      int     `json:"dump"`
 	DumpShare float64 `json:"dump_share"`
-	// Volume is the average daily volume.
+	// Volume is the average volume per bucket times the bucket count: a
+	// day's or a week's typical volume.
 	Volume int `json:"volume"`
-	// Profile is each hour's typical price relative to the day's mean.
-	Profile [24]float64 `json:"profile"`
+	// Profile is each bucket's typical price relative to the group mean.
+	Profile []float64 `json:"profile"`
 }
+
+type period struct {
+	name      string
+	buckets   int
+	group     func(time.Time) int64
+	bucket    func(time.Time) int
+	minFilled int // buckets that must trade for a group to count
+	sideMin   int // buckets a side must trade to be normalized
+	dumpSpan  int
+}
+
+var (
+	daily = period{
+		name: "daily", buckets: 24, minFilled: 18, sideMin: 12, dumpSpan: 3,
+		group:  func(t time.Time) int64 { return t.Truncate(24 * time.Hour).Unix() },
+		bucket: func(t time.Time) int { return t.Hour() },
+	}
+	weekly = period{
+		name: "weekly", buckets: 7, minFilled: 6, sideMin: 5, dumpSpan: 1,
+		group: func(t time.Time) int64 {
+			d := t.Truncate(24 * time.Hour)
+			return d.AddDate(0, 0, -int(d.Weekday())).Unix()
+		},
+		bucket: func(t time.Time) int { return int(t.Weekday()) },
+	}
+)
 
 // DailyCycles finds hour-of-day patterns in hourly series keyed by item
 // ID. A day counts if at least 18 of its hours traded. Items need at
-// least minDays such days, and the pattern is tested on the last third of
+// least minDays such days, and patterns are tested on the last third of
 // them, at least 4 days, so an hour that only looked good by chance shows
 // low Consistency.
-func DailyCycles(series map[int][]prices.TimeseriesDatapoint, catalog *prices.Catalog, minDays int) []DailyCycle {
-	minDays = max(minDays, 6)
-	var out []DailyCycle
+func DailyCycles(series map[int][]prices.TimeseriesDatapoint, catalog *prices.Catalog, minDays int) []Cycle {
+	return cycles(series, catalog, daily, max(minDays, 6), 4)
+}
+
+// WeeklyCycles finds day-of-week patterns in daily series keyed by item
+// ID. A week counts if at least 6 of its days traded. Items need at least
+// minWeeks such weeks, and patterns are tested on the last third of them,
+// at least 3 weeks.
+func WeeklyCycles(series map[int][]prices.TimeseriesDatapoint, catalog *prices.Catalog, minWeeks int) []Cycle {
+	return cycles(series, catalog, weekly, max(minWeeks, 6), 3)
+}
+
+func cycles(series map[int][]prices.TimeseriesDatapoint, catalog *prices.Catalog, p period, minGroups, minTest int) []Cycle {
+	var out []Cycle
 	for id, points := range series {
-		c, ok := dailyCycle(points, minDays)
+		c, ok := findCycle(points, p, minGroups, minTest)
 		if !ok {
 			continue
 		}
@@ -65,24 +105,24 @@ func DailyCycles(series map[int][]prices.TimeseriesDatapoint, catalog *prices.Ca
 	return out
 }
 
-type day struct {
-	low, high [24]float64 // side prices; 0 where that side did not trade
-	rel       [24]float64 // relative price, 0 where neither side traded
-	sellVol   [24]int
+type group struct {
+	low, high []float64 // side prices by bucket; 0 where that side did not trade
+	rel       []float64 // relative price by bucket; 0 where neither traded
+	sellVol   []int
 	volume    int
 }
 
-// relative fills d.rel: each side's price over that side's mean for the
-// day, averaged across the sides that traded. Normalizing sides apart
-// keeps an hour that happened to see mostly instant sells from looking
-// cheap only because of the bid-ask spread. It reports whether the day
+// relative fills g.rel: each side's price over that side's mean for the
+// group, averaged across the sides that traded. Normalizing sides apart
+// keeps a bucket that happened to see mostly instant sells from looking
+// cheap only because of the bid-ask spread. It reports whether the group
 // has enough trading to use.
-func (d *day) relative() bool {
-	mean := func(side [24]float64) (float64, int) {
+func (g *group) relative(p period) bool {
+	mean := func(side []float64) (float64, int) {
 		sum, n := 0.0, 0
-		for _, p := range side {
-			if p > 0 {
-				sum += p
+		for _, v := range side {
+			if v > 0 {
+				sum += v
 				n++
 			}
 		}
@@ -91,126 +131,128 @@ func (d *day) relative() bool {
 		}
 		return sum / float64(n), n
 	}
-	lowMean, lowN := mean(d.low)
-	highMean, highN := mean(d.high)
-	if max(lowN, highN) < 18 {
+	lowMean, lowN := mean(g.low)
+	highMean, highN := mean(g.high)
+	if max(lowN, highN) < p.minFilled {
 		return false
 	}
-	for h := range 24 {
+	for b := range p.buckets {
 		sum, n := 0.0, 0
-		if d.low[h] > 0 && lowN >= 12 {
-			sum += d.low[h] / lowMean
+		if g.low[b] > 0 && lowN >= p.sideMin {
+			sum += g.low[b] / lowMean
 			n++
 		}
-		if d.high[h] > 0 && highN >= 12 {
-			sum += d.high[h] / highMean
+		if g.high[b] > 0 && highN >= p.sideMin {
+			sum += g.high[b] / highMean
 			n++
 		}
 		if n > 0 {
-			d.rel[h] = sum / float64(n)
+			g.rel[b] = sum / float64(n)
 		}
 	}
 	return true
 }
 
-func dailyCycle(points []prices.TimeseriesDatapoint, minDays int) (DailyCycle, bool) {
-	byDay := map[int64]*day{}
-	for _, p := range points {
-		t := p.Timestamp.UTC()
-		key := t.Truncate(24 * time.Hour).Unix()
-		d := byDay[key]
-		if d == nil {
-			d = &day{}
-			byDay[key] = d
+func findCycle(points []prices.TimeseriesDatapoint, p period, minGroups, minTest int) (Cycle, bool) {
+	groups := map[int64]*group{}
+	for _, pt := range points {
+		t := pt.Timestamp.UTC()
+		key := p.group(t)
+		g := groups[key]
+		if g == nil {
+			g = &group{low: make([]float64, p.buckets), high: make([]float64, p.buckets), rel: make([]float64, p.buckets), sellVol: make([]int, p.buckets)}
+			groups[key] = g
 		}
-		if p.LowPriceVolume > 0 {
-			d.low[t.Hour()] = float64(p.AvgLowPrice)
+		b := p.bucket(t)
+		if pt.LowPriceVolume > 0 {
+			g.low[b] = float64(pt.AvgLowPrice)
 		}
-		if p.HighPriceVolume > 0 {
-			d.high[t.Hour()] = float64(p.AvgHighPrice)
+		if pt.HighPriceVolume > 0 {
+			g.high[b] = float64(pt.AvgHighPrice)
 		}
-		d.sellVol[t.Hour()] += p.LowPriceVolume
-		d.volume += p.LowPriceVolume + p.HighPriceVolume
+		g.sellVol[b] += pt.LowPriceVolume
+		g.volume += pt.LowPriceVolume + pt.HighPriceVolume
 	}
 
 	var keys []int64
-	for k, d := range byDay {
-		if d.relative() {
+	for k, g := range groups {
+		if g.relative(p) {
 			keys = append(keys, k)
 		}
 	}
-	if len(keys) < minDays {
-		return DailyCycle{}, false
+	if len(keys) < minGroups {
+		return Cycle{}, false
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	split := len(keys) * 2 / 3
 	train, test := keys[:split], keys[split:]
-	if len(test) < 4 {
-		return DailyCycle{}, false
+	if len(test) < minTest {
+		return Cycle{}, false
 	}
 
-	var c DailyCycle
-	c.Days = len(keys)
-	for h := range 24 {
+	c := Cycle{Period: p.name, Groups: len(keys), Profile: make([]float64, p.buckets)}
+	for b := range p.buckets {
 		var vals []float64
 		for _, k := range train {
-			if r := byDay[k].rel[h]; r > 0 {
+			if r := groups[k].rel[b]; r > 0 {
 				vals = append(vals, r)
 			}
 		}
 		if len(vals) > 0 {
-			c.Profile[h] = median(vals)
+			c.Profile[b] = median(vals)
 		}
 	}
-	for h, v := range c.Profile {
-		if v > 0 && (c.Profile[c.LowHour] == 0 || v < c.Profile[c.LowHour]) {
-			c.LowHour = h
+	for b, v := range c.Profile {
+		if v > 0 && (c.Profile[c.Low] == 0 || v < c.Profile[c.Low]) {
+			c.Low = b
 		}
-		if v > c.Profile[c.HighHour] {
-			c.HighHour = h
+		if v > c.Profile[c.High] {
+			c.High = b
 		}
 	}
-	if c.LowHour == c.HighHour || c.Profile[c.LowHour] == 0 {
-		return DailyCycle{}, false
+	if c.Low == c.High || c.Profile[c.Low] == 0 {
+		return Cycle{}, false
 	}
-	c.Amplitude = c.Profile[c.HighHour]/c.Profile[c.LowHour] - 1
+	c.Amplitude = c.Profile[c.High]/c.Profile[c.Low] - 1
 
 	var gains []float64
-	wins := 0
 	for _, k := range test {
-		lo, hi := byDay[k].rel[c.LowHour], byDay[k].rel[c.HighHour]
+		lo, hi := groups[k].rel[c.Low], groups[k].rel[c.High]
 		if lo == 0 || hi == 0 {
 			continue
 		}
 		g := hi/lo - 1
 		gains = append(gains, g)
 		if g > 0 {
-			wins++
+			c.Wins++
 		}
 	}
-	if len(gains) < 4 {
-		return DailyCycle{}, false
+	if len(gains) < minTest {
+		return Cycle{}, false
 	}
-	c.TestDays, c.Wins = len(gains), wins
-	c.Consistency = float64(wins) / float64(len(gains))
+	c.TestGroups = len(gains)
+	c.Consistency = float64(c.Wins) / float64(len(gains))
 	c.Edge = median(gains) - 0.02
 
-	var sell [24]int
+	sell := make([]int, p.buckets)
 	total, volume := 0, 0
 	for _, k := range keys {
-		for h, v := range byDay[k].sellVol {
-			sell[h] += v
+		for b, v := range groups[k].sellVol {
+			sell[b] += v
 			total += v
 		}
-		volume += byDay[k].volume
+		volume += groups[k].volume
 	}
 	c.Volume = volume / len(keys)
 	if total > 0 {
 		best := -1
-		for h := range 24 {
-			block := sell[h] + sell[(h+1)%24] + sell[(h+2)%24]
+		for b := range p.buckets {
+			block := 0
+			for s := range p.dumpSpan {
+				block += sell[(b+s)%p.buckets]
+			}
 			if block > best {
-				best, c.DumpHour = block, h
+				best, c.Dump = block, b
 			}
 		}
 		c.DumpShare = float64(best) / float64(total)

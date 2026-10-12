@@ -75,10 +75,50 @@ func TestDailyCycles(t *testing.T) {
 		t.Fatalf("cycles = %+v", got)
 	}
 	c := got[0]
-	if c.LowHour != 6 || c.HighHour != 18 || c.Consistency != 1 || c.Edge < 0.09 || c.DumpHour != 5 || c.DumpShare < 0.6 {
+	if c.Low != 6 || c.High != 18 || c.Consistency != 1 || c.Edge < 0.09 || c.Dump != 5 || c.DumpShare < 0.6 {
 		t.Errorf("cyclic = %+v", c)
 	}
 	if got[1].Edge > 0 {
 		t.Errorf("flat item has edge %v", got[1].Edge)
+	}
+}
+
+func TestWeeklyCycles(t *testing.T) {
+	cat := prices.NewCatalog([]prices.Item{{ID: 1, Name: "Weekend"}})
+	start := time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC) // a Sunday
+	var pts []prices.TimeseriesDatapoint
+	for d := range 7 * 15 {
+		ts := start.AddDate(0, 0, d)
+		price := 1000
+		switch ts.Weekday() {
+		case time.Wednesday:
+			price = 900
+		case time.Saturday:
+			price = 1100
+		}
+		pts = append(pts, prices.TimeseriesDatapoint{Timestamp: ts, AvgHighPrice: price, HighPriceVolume: 10, AvgLowPrice: price, LowPriceVolume: 10})
+	}
+	got := WeeklyCycles(map[int][]prices.TimeseriesDatapoint{1: pts}, cat, 6)
+	if len(got) != 1 || got[0].Low != int(time.Wednesday) || got[0].High != int(time.Saturday) || got[0].Wins != got[0].TestGroups {
+		t.Errorf("weekly = %+v", got)
+	}
+}
+
+func TestSeasonal(t *testing.T) {
+	var pts []prices.TimeseriesDatapoint
+	for d := range 365 * 4 {
+		ts := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, d)
+		price := 1000
+		switch ts.Month() {
+		case time.July:
+			price = 800 // a summer slump
+		case time.December:
+			price = 1200
+		}
+		pts = append(pts, prices.TimeseriesDatapoint{Timestamp: ts, AvgHighPrice: price, HighPriceVolume: 10, AvgLowPrice: price, LowPriceVolume: 10})
+	}
+	s, ok := Seasonal(pts)
+	if !ok || s.Low != time.July || s.High != time.December || s.Wins != s.Tests || s.Years != 4 {
+		t.Errorf("season = %+v", s)
 	}
 }

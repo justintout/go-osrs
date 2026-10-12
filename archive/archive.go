@@ -47,7 +47,15 @@ func Open(path string, p *prices.Client) (*Archive, error) {
 	if err != nil {
 		return nil, fmt.Errorf("archive: %w", err)
 	}
-	if err := sqlitex.ExecuteScript(conn, "PRAGMA journal_mode=WAL;"+schema, nil); err != nil {
+	// WAL with synchronous=NORMAL skips an fsync per window. A crash can
+	// lose the last few windows, which Ensure simply fetches again.
+	// Pragmas run outside the schema script, which is a transaction.
+	for _, pragma := range []string{"PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL"} {
+		if err := sqlitex.ExecuteTransient(conn, pragma, nil); err != nil {
+			return nil, fmt.Errorf("archive: %w", errors.Join(err, conn.Close()))
+		}
+	}
+	if err := sqlitex.ExecuteScript(conn, schema, nil); err != nil {
 		return nil, fmt.Errorf("archive: %w", errors.Join(err, conn.Close()))
 	}
 	return &Archive{conn: conn, prices: p}, nil

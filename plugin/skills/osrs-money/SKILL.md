@@ -18,7 +18,9 @@ Use the `osrs` MCP tools when they are loaded. Otherwise run the CLI with `--jso
 | Item stats, alch value, weight | `wiki_item` / `osrs wiki-item <item> --json` |
 | NPC shop items that resell on the GE | `shops` / `osrs shops [--item Spade] --json` |
 | Items breaking from their recent price | `movers` / `osrs movers [--direction down] --json` |
-| Items with reliable hour-of-day cycles | `cycles` / `osrs cycles [--days 21] --json` |
+| Items with reliable hour-of-day or day-of-week cycles | `cycles` / `osrs cycles ["<item>"] [--period weekly] --json` |
+| Whether trading a daily cycle actually pays | `backtest` / `osrs backtest ["<item>"] --json` |
+| Month-of-year pattern across years | `seasonal` / `osrs seasonal "<item>" --json` |
 | What a game update did to prices | `update_impact` / `osrs update-impact "<update title>" --json` |
 
 Item names must match exactly, ignoring case. When `price` fails, its error lists close names; pick the one the user meant or ask.
@@ -32,6 +34,9 @@ Item names must match exactly, ignoring case. When `price` fails, its error list
 - With a player name, `recipes` keeps only recipes the player has the skill levels for. It does not know quest unlocks or tools the player owns.
 - `shops` assumes each unit bought raises the shop price by the shop's delta, and counts one inventory for unlimited-stock shops. The cheapest shop may need a quest or area unlock; say the location and let the user judge.
 - `movers` scores the latest hour against the item's own 24-hour baseline. A high score with a high `volume_ratio` is a real event; a high score on low volume is often one large trade.
-- `cycles` finds each item's usual cheap and dear UTC hours on the earlier days of the range and tests them on the later days; trust `wins` of `test_days`, not the amplitude. `edge` assumes fills at the hour's average price, so a real trader buying with patient offers gets less. The first market scan downloads the missing hours of history into a local archive; later scans fetch only new hours.
+- `cycles` finds each item's usual cheap and dear times on the earlier part of the history and tests them on the later part; trust `wins` of `test_groups`, not the amplitude. `edge` assumes fills at the average price.
+- Always run `backtest` before recommending a daily cycle. It fills a buy only when the hour's average instant-sell price reached the limit, caps fills at 10% of volume, and charges tax. Most daily cycles that look good in `cycles` lose money here; say so plainly.
+- `seasonal` tests each year against months picked from the other years. Only a few years of data exist (since March 2021), so "3 of 3 years" is suggestive, not proof; adjacent low and high months usually mean one spike, not a season.
+- Market scans and `seasonal` download missing history into a local archive the first time, which can take minutes; later runs fetch only new windows.
 - `update_impact` compares the same evening hours the day before and the day after an update. It shows correlation, not cause; mention other updates near the same date if relevant.
 - Prices move. Give the time of the data when it matters, and never present a margin as guaranteed.

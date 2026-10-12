@@ -23,7 +23,8 @@ Tools built on them:
 - [`profit`](./profit/): live high alch, recipe, and NPC shop resale profits after tax, filtered by trade volume.
 - [`quests`](./quests/): full quest requirements across prerequisite trees, checked against a player's levels.
 - [`bossing`](./bossing/): every boss's loot GP per hour, hours to its pet, and hours to finish its collection log.
-- [`market`](./market/): items breaking from their own price baseline, single-order bursts, hour-of-day price cycles and bot-dump hours tested on held-out days, and price changes across game updates.
+- [`market`](./market/): items breaking from their own price baseline, single-order bursts, hour-of-day, day-of-week, and month-of-year price cycles tested on held-out history, and price changes across game updates.
+- [`backtest`](./backtest/): replays trading strategies against price history with conservative fills, tax, and buy limits.
 - [`archive`](./archive/): Grand Exchange price history in SQLite, filled only with the windows a caller asks for.
 - [`craft`](./craft/): an item's full crafting tree down to raw materials, as text or a Mermaid diagram.
 - [`planner`](./planner/): skill training plans that switch methods at unlocks, by fewest actions or best GP per XP, with market caps.

@@ -22,13 +22,13 @@ type backtestIn struct {
 }
 
 type backtestLine struct {
-	Item     string             `json:"item"`
-	ItemID   int                `json:"item_id"`
-	BuyHour  int                `json:"buy_hour"`
-	SellHour int                `json:"sell_hour"`
-	From     time.Time          `json:"trading_from"`
-	Result   backtest.Result    `json:"result"`
-	Cycle    *market.DailyCycle `json:"cycle,omitempty"`
+	Item     string          `json:"item"`
+	ItemID   int             `json:"item_id"`
+	BuyHour  int             `json:"buy_hour"`
+	SellHour int             `json:"sell_hour"`
+	From     time.Time       `json:"trading_from"`
+	Result   backtest.Result `json:"result"`
+	Cycle    *market.Cycle   `json:"cycle,omitempty"`
 }
 
 type backtestOut struct {
@@ -119,7 +119,7 @@ var backtestCmd = newCommand("backtest", "backtest buying at an item's cheap hou
 				if len(cycles) == 0 {
 					return backtestOut{}, fmt.Errorf("%s has no daily pattern in the training days; pass buy_hour and sell_hour to test one anyway", item.Name)
 				}
-				line.BuyHour, line.SellHour, line.Cycle = cycles[0].LowHour, cycles[0].HighHour, &cycles[0]
+				line.BuyHour, line.SellHour, line.Cycle = cycles[0].Low, cycles[0].High, &cycles[0]
 			}
 			strategy := backtest.Cycle{BuyHour: line.BuyHour, SellHour: line.SellHour, Quantity: max(item.Limit, 1)}
 			cfg := backtest.Config{ItemID: id, BuyLimit: item.Limit, Participation: in.Participation, Capital: in.Capital, From: split}
