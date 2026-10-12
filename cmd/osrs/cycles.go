@@ -143,7 +143,7 @@ var cyclesCmd = newCommand("cycles", "find hour-of-day or day-of-week price cycl
 
 type seasonalIn struct {
 	Item  string `json:"item" arg:"" jsonschema:"item name"`
-	Years int    `json:"years,omitempty" jsonschema:"years of daily history, 3 by default and at most 5 (data starts March 2021); the first run downloads one window per missing day"`
+	Years int    `json:"years,omitempty" jsonschema:"years of daily history, 5 by default (data starts March 2021); the first run downloads one window per missing day"`
 }
 
 type seasonalOut struct {
@@ -158,10 +158,10 @@ func (o seasonalOut) text() string {
 	if o.Fetched > 0 {
 		fmt.Fprintf(&b, "archived %d new daily windows\n\n", o.Fetched)
 	}
-	fmt.Fprintf(&b, "%s over %d years: cheapest in %s, dearest in %s, amplitude %+.1f%%\n", o.Item, s.Years, s.Low, s.High, s.Amplitude*100)
+	fmt.Fprintf(&b, "%s, %d years after removing the trend: cheapest in %s, dearest in %s, amplitude %+.1f%%\n", o.Item, s.Years, s.Low, s.High, s.Amplitude*100)
 	fmt.Fprintf(&b, "leaving each year out: high beat low in %d of %d years, median edge after tax %+.1f%%\n\n", s.Wins, s.Tests, s.Edge*100)
 	lo, hi := s.Profile[s.Low-1], s.Profile[s.High-1]
-	t := newTable(&b, "MONTH", "PRICE VS YEAR MEAN")
+	t := newTable(&b, "MONTH", "PRICE VS TREND")
 	for m, v := range s.Profile {
 		bar := ""
 		if v > 0 && hi > lo {
@@ -178,9 +178,11 @@ var seasonalCmd = newCommand("seasonal", "find an item's month-of-year price pat
 		if err := need("item", in.Item); err != nil {
 			return seasonalOut{}, err
 		}
-		years := orDefault(in.Years, 3)
-		if years < 3 || years > 5 {
-			return seasonalOut{}, fmt.Errorf("years must be between 3 and 5")
+		// Detrending uses 6 months at each end, so fewer than 3 years
+		// leaves too little to compare.
+		years := orDefault(in.Years, 5)
+		if years < 3 || years > 6 {
+			return seasonalOut{}, fmt.Errorf("years must be between 3 and 6")
 		}
 		item, err := d.findItem(ctx, in.Item)
 		if err != nil {
@@ -202,7 +204,7 @@ var seasonalCmd = newCommand("seasonal", "find an item's month-of-year price pat
 		}
 		s, ok := market.Seasonal(series[item.ID])
 		if !ok {
-			return seasonalOut{}, fmt.Errorf("%s does not have 3 years with enough trading to compare", item.Name)
+			return seasonalOut{}, fmt.Errorf("%s does not have enough months of trading to compare", item.Name)
 		}
 		return seasonalOut{Item: item.Name, Season: s, Fetched: fetched}, nil
 	})

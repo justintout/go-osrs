@@ -106,8 +106,8 @@ func TestWeeklyCycles(t *testing.T) {
 
 func TestSeasonal(t *testing.T) {
 	var pts []prices.TimeseriesDatapoint
-	for d := range 365 * 4 {
-		ts := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, d)
+	for d := range 365 * 5 {
+		ts := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, d)
 		price := 1000
 		switch ts.Month() {
 		case time.July:
@@ -118,7 +118,22 @@ func TestSeasonal(t *testing.T) {
 		pts = append(pts, prices.TimeseriesDatapoint{Timestamp: ts, AvgHighPrice: price, HighPriceVolume: 10, AvgLowPrice: price, LowPriceVolume: 10})
 	}
 	s, ok := Seasonal(pts)
-	if !ok || s.Low != time.July || s.High != time.December || s.Wins != s.Tests || s.Years != 4 {
+	if !ok || s.Low != time.July || s.High != time.December || s.Wins != s.Tests {
 		t.Errorf("season = %+v", s)
+	}
+}
+
+func TestSeasonalIgnoresTrend(t *testing.T) {
+	// A price that falls steadily for five years has no season, though
+	// every January is dearer than the rest of its calendar year.
+	var pts []prices.TimeseriesDatapoint
+	for d := range 365 * 5 {
+		ts := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, d)
+		price := 2000 - d/2
+		pts = append(pts, prices.TimeseriesDatapoint{Timestamp: ts, AvgHighPrice: price, HighPriceVolume: 10, AvgLowPrice: price, LowPriceVolume: 10})
+	}
+	s, ok := Seasonal(pts)
+	if ok && (s.Amplitude > 0.01 || s.Edge > 0) {
+		t.Errorf("trend read as a season: %+v", s)
 	}
 }
