@@ -38,3 +38,22 @@ func TestAlchsAndRecipes(t *testing.T) {
 		t.Errorf("recipes = %+v", got)
 	}
 }
+
+func TestShopFlips(t *testing.T) {
+	items := []prices.Item{{ID: 1, Name: "Feather", Value: 100}, {ID: 2, Name: "Rune", Value: 10}}
+	latest := prices.Prices{1: {Low: 120}, 2: {Low: 5}}
+	vols := map[int]int{1: 10_000, 2: 10_000}
+	stores := []wiki.StoreItem{
+		// Price rises 5% of value per unit: 100, 105, 110, 115, 120 (stop).
+		{Store: "Shop", Item: "Feather", Currency: "Coins", Price: 100, Stock: 50, SellMultiplier: 1000, Delta: 50},
+		{Store: "Shop", Item: "Rune", Currency: "Coins", Price: 10, Stock: 50, SellMultiplier: 1000},
+		{Store: "Tokens", Item: "Feather", Currency: "Tokkul", Price: 1, Stock: 50},
+		{Store: "Buyer", Item: "Feather", Currency: "Coins", Price: 1, Stock: 0},
+		{Store: "Points Rewards", Item: "Feather", Currency: "Coins", Price: 1, Stock: -1},
+	}
+	got := ShopFlips(stores, prices.NewCatalog(items), latest, vols, 500)
+	// Sell after tax is 120 - 2 = 118, so units at 100, 105, 110, 115.
+	if len(got) != 1 || got[0].Units != 4 || got[0].Cost != 430 || got[0].Profit != 4*118-430 {
+		t.Errorf("flips = %+v", got)
+	}
+}

@@ -14,7 +14,8 @@ type StoreItem struct {
 	Currency string `json:"currency"`
 	// Price is what the shop charges for the first unit at full stock.
 	Price int `json:"price"`
-	// Stock is the shop's full stock, or 0 for unlimited.
+	// Stock is the shop's full stock, or -1 for unlimited. A stock of 0
+	// means the shop only buys the item from players.
 	Stock int `json:"stock"`
 	// SellMultiplier and Delta are in tenths of a percent of the item's
 	// value: each unit bought raises the price by Delta.
@@ -49,7 +50,10 @@ func (c *Client) Stores(ctx context.Context) ([]StoreItem, error) {
 			// "N/A" and similar mean the shop does not sell it for a price.
 			continue
 		}
-		stock, _ := strconv.Atoi(r.Stock) // "∞" leaves 0, meaning unlimited
+		stock, err := strconv.Atoi(r.Stock)
+		if err != nil {
+			stock = -1 // "∞"
+		}
 		mult, _ := strconv.Atoi(r.Mult)
 		delta, _ := strconv.Atoi(r.Delta)
 		items = append(items, StoreItem{
