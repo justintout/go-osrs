@@ -5,6 +5,7 @@ package archive
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -47,8 +48,7 @@ func Open(path string, p *prices.Client) (*Archive, error) {
 		return nil, fmt.Errorf("archive: %w", err)
 	}
 	if err := sqlitex.ExecuteScript(conn, "PRAGMA journal_mode=WAL;"+schema, nil); err != nil {
-		conn.Close()
-		return nil, fmt.Errorf("archive: %w", err)
+		return nil, fmt.Errorf("archive: %w", errors.Join(err, conn.Close()))
 	}
 	return &Archive{conn: conn, prices: p}, nil
 }
