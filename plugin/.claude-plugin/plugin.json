@@ -1,0 +1,27 @@
+{
+  "name": "osrs",
+  "displayName": "OSRS",
+  "version": "0.1.0",
+  "description": "Old School RuneScape tools for agents: hiscores, live GE prices, wiki data, Wise Old Man, drop odds, quest requirements, and training plans. Requires the osrs CLI.",
+  "author": {
+    "name": "Justin Tout",
+    "url": "https://github.com/justintout"
+  },
+  "homepage": "https://github.com/justintout/go-osrs",
+  "repository": "https://github.com/justintout/go-osrs",
+  "license": "MIT",
+  "keywords": ["osrs", "runescape", "hiscores", "grand-exchange", "wiki"],
+  "userConfig": {
+    "user_agent": {
+      "type": "string",
+      "title": "User-Agent",
+      "description": "Identifies you to the OSRS Wiki, Jagex, and Wise Old Man, such as 'my-tools - @name on Discord'. Leave empty to use the go-osrs default."
+    },
+    "wom_api_key": {
+      "type": "string",
+      "title": "Wise Old Man API key",
+      "description": "Optional. Raises the Wise Old Man rate limit above 20 requests a minute.",
+      "sensitive": true
+    }
+  }
+}

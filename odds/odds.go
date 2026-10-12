@@ -11,6 +11,10 @@ import "math"
 // PerKill converts a per-roll probability into a per-kill probability for
 // a table rolled rolls times per kill.
 func PerKill(p float64, rolls int) float64 {
+	if rolls == 1 {
+		// 1-(1-p) loses precision for small p.
+		return p
+	}
 	return 1 - math.Pow(1-p, float64(rolls))
 }
 

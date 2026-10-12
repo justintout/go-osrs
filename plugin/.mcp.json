@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "osrs": {
+      "command": "osrs",
+      "args": ["mcp"],
+      "env": {
+        "OSRS_USER_AGENT": "${user_config.user_agent}",
+        "WOM_API_KEY": "${user_config.wom_api_key}"
+      }
+    }
+  }
+}

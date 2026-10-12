@@ -41,6 +41,15 @@ claude mcp add osrs -- osrs mcp
 
 Set `OSRS_USER_AGENT` to identify yourself to the APIs, and `WOM_API_KEY` for a higher Wise Old Man rate limit.
 
+## Agent skills
+
+The [`plugin`](./plugin/) directory is a Claude Code plugin with skills that teach an agent to use these tools for player lookups, money-making decisions, goal planning, and drop odds. It also starts the MCP server. Install the CLI first, then:
+
+```
+/plugin marketplace add justintout/go-osrs
+/plugin install osrs@go-osrs
+```
+
 ## Examples
 
 The [`examples`](./examples/) module holds small web apps built on the library. It is a separate module, so its dependencies never reach your `go.mod`.

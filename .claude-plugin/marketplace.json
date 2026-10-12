@@ -1,0 +1,15 @@
+{
+  "name": "go-osrs",
+  "description": "Old School RuneScape tools for agents, built on the go-osrs library.",
+  "owner": {
+    "name": "Justin Tout",
+    "url": "https://github.com/justintout"
+  },
+  "plugins": [
+    {
+      "name": "osrs",
+      "source": "./plugin",
+      "description": "Old School RuneScape tools for agents: hiscores, live GE prices, wiki data, Wise Old Man, drop odds, quest requirements, and training plans."
+    }
+  ]
+}
